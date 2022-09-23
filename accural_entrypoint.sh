@@ -1,0 +1,1 @@
+accrual_linux_amd64 -a=localhost:8282 -d=postgresql://localhost:5432/gophermart
