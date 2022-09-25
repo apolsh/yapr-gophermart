@@ -20,7 +20,7 @@ var availableDBTypes = map[string]bool{"postgresql": true}
 func Load() (*Config, error) {
 	cfg := &Config{}
 
-	if err := env.Parse(&cfg); err != nil {
+	if err := env.Parse(cfg); err != nil {
 		panic(err)
 	}
 

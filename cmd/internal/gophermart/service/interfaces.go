@@ -1,7 +1,12 @@
 package service
 
-import "context"
+import (
+	"context"
+	"errors"
+)
 
 type GophermartService interface {
-	Get(ctx context.Context) error
+	AddUser(ctx context.Context, login, password string) error
 }
+
+var ErrorEmptyValue = errors.New("empty values is not allowed")

@@ -2,16 +2,17 @@ package storage
 
 import (
 	"context"
-
-	"github.com/apolsh/yapr-gophermart/cmd/internal/gophermart/entity"
+	"errors"
 )
 
 type (
 	UserStorage interface {
-		Get(ctx context.Context, login, hashedPassword string) (user entity.User, err error)
+		NewUser(ctx context.Context, login, hashedPassword string) error
 	}
 
 	OrderStorage interface {
 		Get(ctx context.Context) error
 	}
 )
+
+var ErrorLoginIsAlreadyUsed = errors.New("login is already used")

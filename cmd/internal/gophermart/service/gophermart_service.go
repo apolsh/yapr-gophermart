@@ -5,6 +5,7 @@ import (
 	"errors"
 
 	"github.com/apolsh/yapr-gophermart/cmd/internal/gophermart/storage"
+	"golang.org/x/crypto/bcrypt"
 )
 
 type GophermartServiceImpl struct {
@@ -21,7 +22,15 @@ func NewGophermartServiceImpl(userStorage storage.UserStorage, orderStorage stor
 	return &GophermartServiceImpl{userStorage: userStorage, orderStorage: orderStorage}, nil
 }
 
-func (g GophermartServiceImpl) Get(ctx context.Context) error {
-	//TODO implement me
-	panic("implement me")
+func (g GophermartServiceImpl) AddUser(ctx context.Context, login, password string) error {
+	if login == "" || password == "" {
+		return ErrorEmptyValue
+	}
+
+	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(password), bcrypt.DefaultCost)
+	if err != nil {
+		return err
+	}
+
+	return g.userStorage.NewUser(ctx, login, string(hashedPassword))
 }
