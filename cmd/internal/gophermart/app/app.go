@@ -36,7 +36,7 @@ func Run(cfg *config.Config) {
 		userStorage = postgres.NewUserStoragePG(pool)
 	}
 
-	gophermartService, err := service.NewGophermartServiceImpl(userStorage, orderStorage)
+	gophermartService, err := service.NewGophermartServiceImpl(*cfg, userStorage, orderStorage)
 	if err != nil {
 		log.Error().Err(err).Msg(err.Error())
 		os.Exit(1)

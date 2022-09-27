@@ -27,6 +27,7 @@ func RegisterRoutes(router *chi.Mux, s service.GophermartService) {
 	router.Use(middleware.Timeout(60 * time.Second))
 
 	newUserRoutes(router, s)
+	newOrdersRoutes(router, s)
 
 }
 
