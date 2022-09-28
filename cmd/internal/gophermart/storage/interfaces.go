@@ -14,11 +14,13 @@ type (
 	}
 
 	OrderStorage interface {
-		Get(ctx context.Context) error
+		SaveOrder(ctx context.Context, order entity.Order) error
 	}
 )
 
 var (
-	ErrorLoginIsAlreadyUsed = errors.New("login is already used")
-	ItemNotFound            = errors.New("requested element not found")
+	ErrorLoginIsAlreadyUsed       = errors.New("login is already used")
+	ItemNotFound                  = errors.New("requested element not found")
+	OrderAlreadyStored            = errors.New("order is already uploaded by user")
+	OrderAlreadyStoredByOtherUser = errors.New("order is already uploaded by another user")
 )

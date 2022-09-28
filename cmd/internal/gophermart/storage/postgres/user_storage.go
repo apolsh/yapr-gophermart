@@ -34,6 +34,7 @@ func (s UserStoragePG) NewUser(ctx context.Context, login, hashedPassword string
 				return "", storage.ErrorLoginIsAlreadyUsed
 			}
 		}
+		//TODO: throw err add logging
 	}
 
 	return id, nil
@@ -47,6 +48,7 @@ func (s UserStoragePG) Get(ctx context.Context, login string) (entity.User, erro
 		if errors.Is(pgx.ErrNoRows, err) {
 			return entity.User{}, storage.ItemNotFound
 		}
+		//TODO: throw err add logging
 	}
 	return user, nil
 }

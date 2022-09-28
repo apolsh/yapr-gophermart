@@ -5,6 +5,7 @@ import (
 	"errors"
 	"time"
 
+	"github.com/apolsh/yapr-gophermart/cmd/internal/gophermart/entity"
 	"github.com/apolsh/yapr-gophermart/cmd/internal/gophermart/storage"
 	"github.com/apolsh/yapr-gophermart/config"
 	"github.com/golang-jwt/jwt/v4"
@@ -81,6 +82,22 @@ func (g GophermartServiceImpl) ParseJWTToken(tokenString string) (string, error)
 		return "", errors.New("invalid token claims type")
 	}
 	return claims.UserId, nil
+}
+
+func (g GophermartServiceImpl) AddOrder(ctx context.Context, orderNum int, userId string) error {
+	err := validateOrderFormat(orderNum)
+	if err != nil {
+		return err
+	}
+	order := entity.NewOrder(orderNum, userId)
+
+	return g.orderStorage.SaveOrder(ctx, order)
+}
+
+func validateOrderFormat(orderNum int) error {
+	//TODO: implement me
+	//throws ErrorInvalidOrderNumberFormat
+	return ErrorInvalidOrderNumberFormat
 }
 
 func (g GophermartServiceImpl) generateToken(id string) (string, error) {
