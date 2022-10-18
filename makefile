@@ -22,4 +22,4 @@ test-db-up:
 	docker compose -f docker-compose.yml up --build db
 
 test-db-down:
-	docker compose -f docker-compose.yml down --volumes db
+	docker compose -f docker-compose.yml down --volumes

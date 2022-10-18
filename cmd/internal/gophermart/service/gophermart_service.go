@@ -89,15 +89,33 @@ func (g GophermartServiceImpl) AddOrder(ctx context.Context, orderNum int, userI
 	if err != nil {
 		return err
 	}
-	order := entity.NewOrder(orderNum, userId)
 
-	return g.orderStorage.SaveOrder(ctx, order)
+	return g.orderStorage.SaveOrder(ctx, orderNum, userId)
+}
+
+func (g GophermartServiceImpl) GetOrdersByUser(ctx context.Context, id string) ([]entity.Order, error) {
+	return g.orderStorage.GetOrdersByID(ctx, id)
 }
 
 func validateOrderFormat(orderNum int) error {
-	//TODO: implement me
-	//throws ErrorInvalidOrderNumberFormat
-	return ErrorInvalidOrderNumberFormat
+	//simplified Luna algorithm
+	var checksum int
+
+	for i := 1; orderNum > 0; i++ {
+		num := orderNum % 10
+		if i%2 == 0 {
+			num = num * 2
+			if num > 9 {
+				num = num%10 + num/10
+			}
+		}
+		checksum += num
+		orderNum = orderNum / 10
+	}
+	if checksum%10 != 0 {
+		return ErrorInvalidOrderNumberFormat
+	}
+	return nil
 }
 
 func (g GophermartServiceImpl) generateToken(id string) (string, error) {

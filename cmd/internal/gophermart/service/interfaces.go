@@ -3,6 +3,8 @@ package service
 import (
 	"context"
 	"errors"
+
+	"github.com/apolsh/yapr-gophermart/cmd/internal/gophermart/entity"
 )
 
 type GophermartService interface {
@@ -10,6 +12,7 @@ type GophermartService interface {
 	LoginUser(ctx context.Context, login, password string) (string, error)
 	ParseJWTToken(token string) (string, error)
 	AddOrder(ctx context.Context, orderNum int, userId string) error
+	GetOrdersByUser(ctx context.Context, id string) ([]entity.Order, error)
 }
 
 var (

@@ -5,6 +5,7 @@ import (
 	"errors"
 
 	"github.com/apolsh/yapr-gophermart/cmd/internal/gophermart/entity"
+	"github.com/rs/zerolog/log"
 )
 
 type (
@@ -14,7 +15,8 @@ type (
 	}
 
 	OrderStorage interface {
-		SaveOrder(ctx context.Context, order entity.Order) error
+		SaveOrder(ctx context.Context, orderNum int, userID string) error
+		GetOrdersByID(ctx context.Context, id string) ([]entity.Order, error)
 	}
 )
 
@@ -23,4 +25,10 @@ var (
 	ItemNotFound                  = errors.New("requested element not found")
 	OrderAlreadyStored            = errors.New("order is already uploaded by user")
 	OrderAlreadyStoredByOtherUser = errors.New("order is already uploaded by another user")
+	UnknownDatabaseError          = errors.New("unknown database error")
 )
+
+func HandleUnknownDatabaseError(err error) error {
+	log.Error().Err(err).Msg(err.Error())
+	return UnknownDatabaseError
+}

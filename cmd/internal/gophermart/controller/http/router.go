@@ -43,7 +43,7 @@ func RegisterRoutes(r *chi.Mux, s service.GophermartService) {
 			r.Post("/login", c.userLoginHandler)
 		})
 		r.With(AuthMiddleware(s.ParseJWTToken)).Group(func(r chi.Router) {
-			r.Route("/order", func(r chi.Router) {
+			r.Route("/orders", func(r chi.Router) {
 				r.Post("/", c.createOrder)
 				r.Get("/", c.getOrders)
 			})
@@ -53,7 +53,6 @@ func RegisterRoutes(r *chi.Mux, s service.GophermartService) {
 			})
 			r.Get("/withdrawals", c.getWithdrawals)
 		})
-		r.Mount("/", newOrdersRoutes(s))
 	})
 }
 
@@ -153,7 +152,9 @@ func (c *controller) createOrder(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "", http.StatusBadRequest)
 		return
 	}
-	err = c.gophermartService.AddOrder(r.Context(), num)
+	userID := r.Context().Value(UserID).(string)
+
+	err = c.gophermartService.AddOrder(r.Context(), num, userID)
 	if err != nil {
 		if errors.Is(service.ErrorInvalidOrderNumberFormat, err) {
 			http.Error(w, "", http.StatusUnprocessableEntity)
@@ -174,7 +175,22 @@ func (c *controller) createOrder(w http.ResponseWriter, r *http.Request) {
 }
 
 func (c *controller) getOrders(w http.ResponseWriter, r *http.Request) {
-	//TODO: implement me
+	userID := r.Context().Value(UserID).(string)
+	orders, err := c.gophermartService.GetOrdersByUser(r.Context(), userID)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+	w.Header().Set("Content-Type", "application/json; charset=utf-8")
+
+	if len(orders) == 0 {
+		w.WriteHeader(http.StatusNoContent)
+	} else {
+		w.WriteHeader(http.StatusOK)
+	}
+	if err := json.NewEncoder(w).Encode(orders); err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+	}
 }
 
 func (c *controller) getBalance(w http.ResponseWriter, r *http.Request) {

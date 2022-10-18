@@ -10,7 +10,7 @@ import (
 
 const (
 	authCookieName = "Authorization"
-	userID         = "userID"
+	UserID         = "UserID"
 )
 
 func AuthMiddleware(parseCallback func(string) (string, error)) func(handler http.Handler) http.Handler {
@@ -34,7 +34,7 @@ func AuthMiddleware(parseCallback func(string) (string, error)) func(handler htt
 				return
 			}
 
-			ctxWithUserID := context.WithValue(r.Context(), userID, id)
+			ctxWithUserID := context.WithValue(r.Context(), UserID, id)
 			rWithUserID := r.WithContext(ctxWithUserID)
 			next.ServeHTTP(w, rWithUserID)
 		})
