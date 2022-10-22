@@ -20,6 +20,7 @@ import (
 )
 
 func Run(cfg *config.Config) {
+	log.Info().Msg("Starting application ...")
 
 	var userStorage storage.UserStorage = nil
 	var orderStorage storage.OrderStorage = nil
@@ -31,10 +32,6 @@ func Run(cfg *config.Config) {
 			log.Error().Err(err).Msg(err.Error())
 			os.Exit(1)
 		}
-		//poolConfig.AfterConnect = func(ctx context.Context, conn *pgx.Conn) error {
-		//	pgxdecimal.Register(conn.)
-		//	return nil
-		//}
 
 		pool, err := pgxpool.Connect(context.Background(), cfg.DatabaseURI)
 		if err != nil {
