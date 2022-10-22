@@ -8,7 +8,7 @@ import (
 	"testing"
 
 	"github.com/go-resty/resty/v2"
-	"github.com/jackc/pgx/v5/pgxpool"
+	"github.com/jackc/pgx/v4/pgxpool"
 	"github.com/stretchr/testify/suite"
 	"golang.org/x/crypto/bcrypt"
 )
@@ -38,7 +38,7 @@ func (s *UserRegisterSuite) SetupSuite() {
 		dbURI = "postgresql://gophermartuser:gophermartpass@localhost:5432/gophermart"
 	}
 
-	db, err := pgxpool.New(ctx, dbURI)
+	db, err := pgxpool.Connect(ctx, dbURI)
 	s.db = db
 	if err != nil {
 		fmt.Println(err.Error())

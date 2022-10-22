@@ -6,9 +6,8 @@ import (
 
 	"github.com/apolsh/yapr-gophermart/cmd/internal/gophermart/entity"
 	"github.com/apolsh/yapr-gophermart/cmd/internal/gophermart/storage"
-	pgxdecimal "github.com/jackc/pgx-shopspring-decimal"
-	"github.com/jackc/pgx/v5/pgconn"
-	"github.com/jackc/pgx/v5/pgxpool"
+	"github.com/jackc/pgconn"
+	"github.com/jackc/pgx/v4/pgxpool"
 	"github.com/shopspring/decimal"
 )
 
@@ -29,7 +28,7 @@ func (o OrderStoragePG) SaveNewOrder(ctx context.Context, orderNum int, userID s
 	order := entity.NewOrder(orderNum, userID)
 	//language=postgresql
 	s := "INSERT INTO \"order\" (number, status, accrual, uploaded_at, user_id) VALUES ($1, $2, $3, $4, $5)"
-	_, err := o.pool.Exec(ctx, s, order.Number, order.Status, pgxdecimal.Decimal(order.Accrual), order.UploadedAt, order.UserId)
+	_, err := o.pool.Exec(ctx, s, order.Number, order.Status, order.Accrual, order.UploadedAt, order.UserId)
 	var pgErr *pgconn.PgError
 	if err != nil {
 		if errors.As(err, &pgErr) {
@@ -56,7 +55,7 @@ func (o OrderStoragePG) SaveNewOrder(ctx context.Context, orderNum int, userID s
 func (o OrderStoragePG) UpdateOrder(ctx context.Context, orderNum int, status string, accrual decimal.Decimal) error {
 	//language=postgresql
 	q := "UPDATE \"order\" SET status = $1, accrual = $2 WHERE number = $3"
-	_, err := o.pool.Exec(ctx, q, status, pgxdecimal.Decimal(accrual), orderNum)
+	_, err := o.pool.Exec(ctx, q, status, accrual, orderNum)
 	if err != nil {
 		return storage.HandleUnknownDatabaseError(err)
 	}

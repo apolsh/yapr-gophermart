@@ -8,6 +8,7 @@ on:
       - main
       - master
       - sprint5-6
+      - sprint5-6_pgxv4
 
 jobs:
 

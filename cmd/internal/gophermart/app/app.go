@@ -14,12 +14,9 @@ import (
 	"github.com/apolsh/yapr-gophermart/cmd/internal/gophermart/storage/postgres"
 	"github.com/apolsh/yapr-gophermart/config"
 	"github.com/go-chi/chi/v5"
-	"github.com/jackc/pgx/v5"
-	"github.com/jackc/pgx/v5/pgxpool"
+	"github.com/jackc/pgx/v4/pgxpool"
 	"github.com/rs/zerolog/log"
 	"github.com/shopspring/decimal"
-
-	pgxdecimal "github.com/jackc/pgx-shopspring-decimal"
 )
 
 func Run(cfg *config.Config) {
@@ -29,17 +26,17 @@ func Run(cfg *config.Config) {
 	decimal.MarshalJSONWithoutQuotes = true
 
 	if cfg.DatabaseType == "postgresql" {
-		poolConfig, err := pgxpool.ParseConfig(cfg.DatabaseURI)
+		_, err := pgxpool.ParseConfig(cfg.DatabaseURI)
 		if err != nil {
 			log.Error().Err(err).Msg(err.Error())
 			os.Exit(1)
 		}
-		poolConfig.AfterConnect = func(ctx context.Context, conn *pgx.Conn) error {
-			pgxdecimal.Register(conn.TypeMap())
-			return nil
-		}
+		//poolConfig.AfterConnect = func(ctx context.Context, conn *pgx.Conn) error {
+		//	pgxdecimal.Register(conn.)
+		//	return nil
+		//}
 
-		pool, err := pgxpool.New(context.Background(), cfg.DatabaseURI)
+		pool, err := pgxpool.Connect(context.Background(), cfg.DatabaseURI)
 		if err != nil {
 			err := errors.New("failed to connect to the database")
 			log.Error().Err(err).Msg(err.Error())
