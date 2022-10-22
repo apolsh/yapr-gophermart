@@ -26,7 +26,6 @@ func NewOrder(number int, userId string) Order {
 		Number:     number,
 		UserId:     userId,
 		UploadedAt: time.Now(),
-		Accrual:    decimal.NewFromInt(0),
 		Status:     StatusNew,
 	}
 }

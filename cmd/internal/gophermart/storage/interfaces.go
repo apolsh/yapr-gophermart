@@ -6,6 +6,7 @@ import (
 
 	"github.com/apolsh/yapr-gophermart/cmd/internal/gophermart/entity"
 	"github.com/rs/zerolog/log"
+	"github.com/shopspring/decimal"
 )
 
 type (
@@ -15,7 +16,8 @@ type (
 	}
 
 	OrderStorage interface {
-		SaveOrder(ctx context.Context, orderNum int, userID string) error
+		SaveNewOrder(ctx context.Context, orderNum int, userID string) error
+		UpdateOrder(ctx context.Context, orderNum int, status string, accrual decimal.Decimal) error
 		GetOrdersByID(ctx context.Context, id string) ([]entity.Order, error)
 	}
 )

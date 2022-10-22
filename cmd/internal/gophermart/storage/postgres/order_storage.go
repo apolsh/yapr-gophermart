@@ -9,6 +9,7 @@ import (
 	pgxdecimal "github.com/jackc/pgx-shopspring-decimal"
 	"github.com/jackc/pgx/v5/pgconn"
 	"github.com/jackc/pgx/v5/pgxpool"
+	"github.com/shopspring/decimal"
 )
 
 type OrderStoragePG struct {
@@ -24,7 +25,7 @@ func NewOrderStoragePG(pool *pgxpool.Pool) storage.OrderStorage {
 	return &OrderStoragePG{pool: pool}
 }
 
-func (o OrderStoragePG) SaveOrder(ctx context.Context, orderNum int, userID string) error {
+func (o OrderStoragePG) SaveNewOrder(ctx context.Context, orderNum int, userID string) error {
 	order := entity.NewOrder(orderNum, userID)
 	//language=postgresql
 	s := "INSERT INTO \"order\" (number, status, accrual, uploaded_at, user_id) VALUES ($1, $2, $3, $4, $5)"
@@ -47,6 +48,16 @@ func (o OrderStoragePG) SaveOrder(ctx context.Context, orderNum int, userID stri
 				return storage.OrderAlreadyStoredByOtherUser
 			}
 		}
+		return storage.HandleUnknownDatabaseError(err)
+	}
+	return nil
+}
+
+func (o OrderStoragePG) UpdateOrder(ctx context.Context, orderNum int, status string, accrual decimal.Decimal) error {
+	//language=postgresql
+	q := "UPDATE \"order\" SET status = $1, accrual = $2 WHERE number = $3"
+	_, err := o.pool.Exec(ctx, q, status, pgxdecimal.Decimal(accrual), orderNum)
+	if err != nil {
 		return storage.HandleUnknownDatabaseError(err)
 	}
 	return nil

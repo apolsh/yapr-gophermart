@@ -15,7 +15,7 @@ create unique index if not exists user_login_uindex
 
 create table if not exists "order"
 (
-    number      integer                  not null
+    number      bigint                  not null
     constraint order_pk
     primary key,
     status      varchar(255)             not null,
@@ -32,7 +32,7 @@ alter table "order"
 
 create table if not exists withdrawal
 (
-    "order"      integer                  not null
+    "order"      bigint                  not null
     constraint withdrawal_order_number_fk
     references "order"
     on delete cascade,
@@ -68,8 +68,8 @@ create or replace function create_new_balance() returns trigger
 as
 $$
 begin
-insert into balance(user_id, current, withdrawn) values (new.user_id, 0, 0);
---	on conflict (user_id) do update set current = old.accrual + new.accrual;
+insert into balance(user_id, current, withdrawn) values (new.user_id, 0, 0)
+on conflict(user_id) do nothing;
 
 RETURN NEW;
 END;

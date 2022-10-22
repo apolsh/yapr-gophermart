@@ -5,17 +5,21 @@ import (
 	"errors"
 	"time"
 
+	"github.com/apolsh/yapr-gophermart/cmd/internal/gophermart/client"
 	"github.com/apolsh/yapr-gophermart/cmd/internal/gophermart/entity"
 	"github.com/apolsh/yapr-gophermart/cmd/internal/gophermart/storage"
 	"github.com/apolsh/yapr-gophermart/config"
 	"github.com/golang-jwt/jwt/v4"
+	"github.com/rs/zerolog/log"
 	"golang.org/x/crypto/bcrypt"
 )
 
 type GophermartServiceImpl struct {
-	jwtSecretKey string
-	userStorage  storage.UserStorage
-	orderStorage storage.OrderStorage
+	jwtSecretKey   string
+	userStorage    storage.UserStorage
+	orderStorage   storage.OrderStorage
+	loyaltyService client.LoyaltyService
+	asyncWorker    AsyncWorker
 }
 
 type jwtTokenClaims struct {
@@ -28,8 +32,23 @@ func NewGophermartServiceImpl(cfg config.Config, userStorage storage.UserStorage
 	if userStorage == nil || orderStorage == nil {
 		return nil, errors.New("not all storages were initialized")
 	}
+	asyncWorker, err := NewAsyncWorker(cfg.LoyaltyServiceRateLimit)
+	if err != nil {
+		return nil, err
+	}
 
-	return &GophermartServiceImpl{jwtSecretKey: cfg.TokenSecretKey, userStorage: userStorage, orderStorage: orderStorage}, nil
+	loyaltyService, err := client.NewLoyaltyServiceImpl(cfg.AccrualSystemAddress)
+	if err != nil {
+		return nil, err
+	}
+
+	return &GophermartServiceImpl{
+		jwtSecretKey:   cfg.TokenSecretKey,
+		userStorage:    userStorage,
+		orderStorage:   orderStorage,
+		asyncWorker:    *asyncWorker,
+		loyaltyService: loyaltyService,
+	}, nil
 }
 
 func (g GophermartServiceImpl) AddUser(ctx context.Context, login, password string) (string, error) {
@@ -90,7 +109,43 @@ func (g GophermartServiceImpl) AddOrder(ctx context.Context, orderNum int, userI
 		return err
 	}
 
-	return g.orderStorage.SaveOrder(ctx, orderNum, userId)
+	err = g.orderStorage.SaveNewOrder(ctx, orderNum, userId)
+	if err != nil {
+		return err
+	}
+
+	g.asyncWorker.ExecuteTask(func() {
+		g.getAccrualAsync(orderNum)
+	})
+
+	return nil
+}
+
+func (g GophermartServiceImpl) getAccrualAsync(orderNum int) {
+	loyaltyInfo, err := g.loyaltyService.GetLoyaltyPoints(context.Background(), orderNum)
+	if errors.Is(client.TooManyRequestsError, err) {
+		time.AfterFunc(1*time.Minute, func() {
+			g.asyncWorker.ExecuteTask(func() {
+				g.getAccrualAsync(orderNum)
+			})
+		})
+	}
+	if err != nil {
+		log.Error().Err(err).Msg(err.Error())
+		return
+	}
+	if loyaltyInfo.Status == "PROCESSING" || loyaltyInfo.Status == "REGISTERED" {
+		time.AfterFunc(15*time.Second, func() {
+			g.asyncWorker.ExecuteTask(func() {
+				g.getAccrualAsync(orderNum)
+			})
+		})
+	}
+	err = g.orderStorage.UpdateOrder(context.Background(), orderNum, loyaltyInfo.Status, loyaltyInfo.Accrual)
+	if err != nil {
+		log.Error().Err(err).Msg(err.Error())
+		return
+	}
 }
 
 func (g GophermartServiceImpl) GetOrdersByUser(ctx context.Context, id string) ([]entity.Order, error) {
@@ -98,7 +153,6 @@ func (g GophermartServiceImpl) GetOrdersByUser(ctx context.Context, id string) (
 }
 
 func validateOrderFormat(orderNum int) error {
-	//simplified Luna algorithm
 	var checksum int
 
 	for i := 1; orderNum > 0; i++ {
