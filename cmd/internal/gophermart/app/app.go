@@ -2,7 +2,6 @@ package app
 
 import (
 	"context"
-	"database/sql"
 	"errors"
 	"fmt"
 	"os"
@@ -16,8 +15,6 @@ import (
 	"github.com/apolsh/yapr-gophermart/cmd/internal/gophermart/storage/postgres"
 	"github.com/apolsh/yapr-gophermart/config"
 	"github.com/go-chi/chi/v5"
-	"github.com/golang-migrate/migrate/v4"
-	migratepg "github.com/golang-migrate/migrate/v4/database/postgres"
 	"github.com/jackc/pgx/v4/pgxpool"
 	"github.com/rs/zerolog/log"
 	"github.com/shopspring/decimal"
@@ -40,34 +37,22 @@ func Run(cfg *config.Config) {
 			databaseURL += "?sslmode=disable"
 		}
 
-		db, err := sql.Open("postgres", databaseURL)
-		if err != nil {
-			os.Exit(1)
-		}
-
-		driver, err := migratepg.WithInstance(db, &migratepg.Config{})
-		if err != nil {
-			os.Exit(1)
-		}
-		m, err := migrate.NewWithDatabaseInstance(
-			"file://migrations",
-			"postgres", driver)
-		err = m.Up()
-		//if !errors.Is(err, migrate.ErrNoChange) {
-		//	os.Exit(1)
-		//}
-		//postgres.RunMigration(cfg.DatabaseURI)
 		pool, err := pgxpool.Connect(context.Background(), cfg.DatabaseURI)
 		if err != nil {
 			err := errors.New("failed to connect to the database")
 			log.Error().Err(err).Msg(err.Error())
 			os.Exit(1)
 		}
-
+		postgres.RunMigration(databaseURL)
 		defer pool.Close()
 		orderStorage = postgres.NewOrderStoragePG(pool)
 		userStorage = postgres.NewUserStoragePG(pool)
 	}
+	log.Info().Msg(cfg.RunAddress)
+	log.Info().Msg(cfg.AccrualSystemAddress)
+	log.Info().Msg(cfg.TokenSecretKey)
+	log.Info().Msg(cfg.DatabaseType)
+	log.Info().Msg(cfg.DatabaseURI)
 
 	gophermartService, err := service.NewGophermartServiceImpl(*cfg, userStorage, orderStorage)
 	if err != nil {

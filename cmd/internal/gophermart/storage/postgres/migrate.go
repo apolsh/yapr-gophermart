@@ -1,11 +1,13 @@
 package postgres
 
 import (
+	"embed"
 	"errors"
 	"os"
 	"time"
 
 	"github.com/golang-migrate/migrate/v4"
+	"github.com/golang-migrate/migrate/v4/source/iofs"
 	"github.com/rs/zerolog/log"
 	// migrate tools
 	_ "github.com/golang-migrate/migrate/v4/database/postgres"
@@ -14,6 +16,9 @@ import (
 
 const _defaultAttempts = 5
 const _defaultTimeout = 10 * time.Second
+
+//go:embed migrations/*.sql
+var fs embed.FS
 
 func RunMigration(databaseURL string) {
 
@@ -26,10 +31,16 @@ func RunMigration(databaseURL string) {
 		err      error
 		m        *migrate.Migrate
 	)
-	log.Info().Msg(databaseURL)
+
+	d, err := iofs.New(fs, "migrations")
+	if err != nil {
+		log.Error().Err(err).Msgf("Migrate: postgres connect error: %s", err)
+		os.Exit(1)
+	}
 
 	for attempts > 0 {
-		m, err = migrate.New("file://migrations", databaseURL)
+		//m, err = migrate.New("file://migrations", databaseURL)
+		m, err = migrate.NewWithSourceInstance("iofs", d, databaseURL)
 		if err == nil {
 			break
 		}
