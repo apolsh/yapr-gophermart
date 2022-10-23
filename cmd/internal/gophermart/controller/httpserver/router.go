@@ -137,7 +137,7 @@ func (c *controller) createOrder(w http.ResponseWriter, r *http.Request) {
 	}
 	reader, err := getBodyReader(r)
 	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
+		http.Error(w, err.Error(), http.StatusUnprocessableEntity)
 		return
 	}
 	defer reader.Close()
@@ -168,7 +168,7 @@ func (c *controller) createOrder(w http.ResponseWriter, r *http.Request) {
 			http.Error(w, "", http.StatusConflict)
 			return
 		}
-		http.Error(w, err.Error(), http.StatusInternalServerError)
+		http.Error(w, err.Error(), http.StatusGone)
 		return
 	}
 	w.WriteHeader(http.StatusAccepted)
