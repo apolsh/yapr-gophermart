@@ -7,9 +7,6 @@ create table if not exists "user"
     password varchar(255)                   not null
     );
 
-alter table "user"
-    owner to gophermartuser;
-
 create unique index if not exists user_login_uindex
     on "user" (login);
 
@@ -27,9 +24,6 @@ create table if not exists "order"
                               on delete cascade
                               );
 
-alter table "order"
-    owner to gophermartuser;
-
 create table if not exists withdrawal
 (
     "order"      bigint                  not null
@@ -44,9 +38,6 @@ create table if not exists withdrawal
                                on delete cascade
                                );
 
-alter table withdrawal
-    owner to gophermartuser;
-
 create table if not exists balance
 (
     user_id   uuid
@@ -56,9 +47,6 @@ create table if not exists balance
     current   numeric(12, 2),
     withdrawn numeric(12, 2)
     );
-
-alter table balance
-    owner to gophermartuser;
 
 create unique index if not exists balance_user_uindex
     on balance (user_id);
@@ -74,8 +62,6 @@ on conflict(user_id) do nothing;
 RETURN NEW;
 END;
 $$;
-
-alter function create_new_balance() owner to gophermartuser;
 
 create trigger ins_new_balance
     after insert
@@ -97,8 +83,6 @@ return new;
 END;
 $$;
 
-alter function add_accrual_to_balance() owner to gophermartuser;
-
 create trigger add_accrual_to_balance
     after update
     on "order"
@@ -119,8 +103,6 @@ end if;
 return new;
 END;
 $$;
-
-alter function add_withdrawn_to_balance() owner to gophermartuser;
 
 create trigger add_withdrawn_to_balance
     after insert
