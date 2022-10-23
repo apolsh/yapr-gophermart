@@ -3,7 +3,6 @@ package postgres
 import (
 	"context"
 	"embed"
-	"os"
 	"time"
 
 	"github.com/jackc/pgx/v4/pgxpool"
@@ -156,6 +155,5 @@ COMMIT;
 	_, err := pool.Exec(context.Background(), q)
 	if err != nil {
 		log.Error().Err(err).Msg(err.Error())
-		os.Exit(1)
 	}
 }
