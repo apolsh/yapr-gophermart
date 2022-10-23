@@ -21,6 +21,7 @@ import (
 )
 
 func Run(cfg *config.Config) {
+	log.Info().Msg("START APPLICATION")
 
 	var userStorage storage.UserStorage = nil
 	var orderStorage storage.OrderStorage = nil
@@ -43,7 +44,7 @@ func Run(cfg *config.Config) {
 			log.Error().Err(err).Msg(err.Error())
 			os.Exit(1)
 		}
-		postgres.RunMigration(databaseURL)
+		postgres.RunMigration(pool)
 		defer pool.Close()
 		orderStorage = postgres.NewOrderStoragePG(pool)
 		userStorage = postgres.NewUserStoragePG(pool)
