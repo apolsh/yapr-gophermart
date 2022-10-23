@@ -168,6 +168,9 @@ func (c *controller) createOrder(w http.ResponseWriter, r *http.Request) {
 			http.Error(w, "", http.StatusConflict)
 			return
 		}
+		if errors.Is(storage.UnknownDatabaseError, err) {
+			http.Error(w, "", http.StatusHTTPVersionNotSupported)
+		}
 		http.Error(w, err.Error(), http.StatusGone)
 		return
 	}
