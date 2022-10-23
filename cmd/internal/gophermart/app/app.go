@@ -41,15 +41,21 @@ func Run(cfg *config.Config) {
 		}
 
 		db, err := sql.Open("postgres", databaseURL)
+		if err != nil {
+			os.Exit(1)
+		}
 
 		driver, err := migratepg.WithInstance(db, &migratepg.Config{})
+		if err != nil {
+			os.Exit(1)
+		}
 		m, err := migrate.NewWithDatabaseInstance(
 			"file://migrations",
 			"postgres", driver)
 		err = m.Up()
-		if !errors.Is(err, migrate.ErrNoChange) {
-			os.Exit(1)
-		}
+		//if !errors.Is(err, migrate.ErrNoChange) {
+		//	os.Exit(1)
+		//}
 		//postgres.RunMigration(cfg.DatabaseURI)
 		pool, err := pgxpool.Connect(context.Background(), cfg.DatabaseURI)
 		if err != nil {
