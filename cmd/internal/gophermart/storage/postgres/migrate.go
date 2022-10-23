@@ -22,10 +22,6 @@ var fs embed.FS
 
 func RunMigration(databaseURL string) {
 
-	//if !strings.Contains(databaseURL, "sslmode") {
-	//	databaseURL += "?sslmode=disable"
-	//}
-
 	var (
 		attempts = _defaultAttempts
 		err      error
@@ -55,11 +51,15 @@ func RunMigration(databaseURL string) {
 		os.Exit(1)
 	}
 
+	if m == nil {
+		os.Exit(1)
+	}
+
 	err = m.Up()
 	defer m.Close()
 	if err != nil && !errors.Is(err, migrate.ErrNoChange) {
 		log.Error().Err(err).Msgf("Migrate: up error: %s", err)
-		os.Exit(1)
+		//os.Exit(1)
 	}
 
 	if errors.Is(err, migrate.ErrNoChange) {
