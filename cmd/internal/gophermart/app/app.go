@@ -4,7 +4,6 @@ import (
 	defaultLogger "log"
 	"net/http"
 
-	"github.com/apolsh/yapr-gophermart/cmd/internal/gophermart/controller/httpserver"
 	"github.com/apolsh/yapr-gophermart/config"
 	"github.com/go-chi/chi/v5"
 	"github.com/shopspring/decimal"
@@ -42,7 +41,7 @@ func Run(cfg *config.Config) {
 	//}
 
 	r := chi.NewRouter()
-	httpserver.RegisterRoutes(r, nil)
+	//httpserver.RegisterRoutes(r, nil)
 	defaultLogger.Fatal(http.ListenAndServe(cfg.RunAddress, r))
 
 	//httpServer := httpserver.NewServer(r, cfg)
