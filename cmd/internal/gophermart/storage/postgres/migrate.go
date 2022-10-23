@@ -2,6 +2,7 @@ package postgres
 
 import (
 	"errors"
+	"os"
 	"strings"
 	"time"
 
@@ -47,6 +48,7 @@ func RunMigration(databaseURL string) {
 	defer m.Close()
 	if err != nil && !errors.Is(err, migrate.ErrNoChange) {
 		log.Error().Err(err).Msgf("Migrate: up error: %s", err)
+		os.Exit(1)
 	}
 
 	if errors.Is(err, migrate.ErrNoChange) {
