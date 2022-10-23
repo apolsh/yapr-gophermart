@@ -3,7 +3,6 @@ package postgres
 import (
 	"errors"
 	"os"
-	"strings"
 	"time"
 
 	"github.com/golang-migrate/migrate/v4"
@@ -18,9 +17,9 @@ const _defaultTimeout = 10 * time.Second
 
 func RunMigration(databaseURL string) {
 
-	if !strings.Contains(databaseURL, "?sslmode") {
-		databaseURL += "?sslmode=disable"
-	}
+	//if !strings.Contains(databaseURL, "?sslmode") {
+	//	databaseURL += "?sslmode=disable"
+	//}
 
 	var (
 		attempts = _defaultAttempts
