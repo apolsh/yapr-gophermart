@@ -15,7 +15,6 @@ const _defaultAttempts = 5
 const _defaultTimeout = 10 * time.Second
 
 func RunMigration(databaseURL string) {
-	databaseURL += "?sslmode=disable"
 
 	var (
 		attempts = _defaultAttempts
