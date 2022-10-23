@@ -2,7 +2,7 @@ package postgres
 
 import (
 	"errors"
-	"os"
+	"strings"
 	"time"
 
 	"github.com/golang-migrate/migrate/v4"
@@ -17,9 +17,9 @@ const _defaultTimeout = 10 * time.Second
 
 func RunMigration(databaseURL string) {
 
-	//if !strings.Contains(databaseURL, "?sslmode") {
-	//	databaseURL += "?sslmode=disable"
-	//}
+	if !strings.Contains(databaseURL, "?sslmode") {
+		databaseURL += "?sslmode=disable"
+	}
 
 	var (
 		attempts = _defaultAttempts
@@ -29,7 +29,7 @@ func RunMigration(databaseURL string) {
 	log.Info().Msg(databaseURL)
 
 	for attempts > 0 {
-		m, err = migrate.New("file://cmd/internal/gophermart/storage/postgres/migrations", databaseURL)
+		m, err = migrate.New("file://migrations", databaseURL)
 		if err == nil {
 			break
 		}
@@ -47,7 +47,6 @@ func RunMigration(databaseURL string) {
 	defer m.Close()
 	if err != nil && !errors.Is(err, migrate.ErrNoChange) {
 		log.Error().Err(err).Msgf("Migrate: up error: %s", err)
-		os.Exit(1)
 	}
 
 	if errors.Is(err, migrate.ErrNoChange) {
