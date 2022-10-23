@@ -2,6 +2,7 @@ package postgres
 
 import (
 	"errors"
+	"os"
 	"strings"
 	"time"
 
@@ -17,7 +18,7 @@ const _defaultTimeout = 10 * time.Second
 
 func RunMigration(databaseURL string) {
 
-	if !strings.Contains(databaseURL, "?sslmode") {
+	if !strings.Contains(databaseURL, "sslmode") {
 		databaseURL += "?sslmode=disable"
 	}
 
@@ -41,12 +42,14 @@ func RunMigration(databaseURL string) {
 
 	if err != nil {
 		log.Error().Err(err).Msgf("Migrate: postgres connect error: %s", err)
+		os.Exit(1)
 	}
 
 	err = m.Up()
 	defer m.Close()
 	if err != nil && !errors.Is(err, migrate.ErrNoChange) {
 		log.Error().Err(err).Msgf("Migrate: up error: %s", err)
+		os.Exit(1)
 	}
 
 	if errors.Is(err, migrate.ErrNoChange) {
