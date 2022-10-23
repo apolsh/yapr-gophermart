@@ -12,7 +12,7 @@ type Config struct {
 	AccrualSystemAddress string `env:"ACCRUAL_SYSTEM_ADDRESS" envDefault:"http://localhost:8090"`
 	//AuthSecretKey        string `env:"AUTH_SECRET_KEY" envDefault:"very_secret_key"`
 	DatabaseType            string `env:"DATABASE_TYPE"  envDefault:"postgresql"`
-	DatabaseURI             string `env:"DATABASE_URI"  envDefault:"postgresql://gophermartuser:gophermartpass@localhost:5432/gophermart?sslmode=disable"`
+	DatabaseURI             string `env:"DATABASE_URI"  envDefault:"\"postgresql://gophermartuser:gophermartpass@localhost:5432/gophermart?sslmode=disable\""`
 	TokenSecretKey          string `env:"TOKEN_SECRET_KEY"  envDefault:"very_secret_token_key"`
 	LoyaltyServiceRateLimit int    `env:"LOYALTY_SERVICE_RATE_LIMIT" envDefault:"10"`
 }

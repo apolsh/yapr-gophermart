@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"os"
 	"os/signal"
+	"strings"
 	"syscall"
 
 	"github.com/apolsh/yapr-gophermart/cmd/internal/gophermart/controller/httpserver"
@@ -34,7 +35,19 @@ func Run(cfg *config.Config) {
 			log.Error().Err(err).Msg(err.Error())
 			os.Exit(1)
 		}
+		databaseURL := cfg.DatabaseURI
+		if !strings.Contains(databaseURL, "sslmode") {
+			databaseURL += "?sslmode=disable"
+		}
 
+		db, err := sql.Open("postgres", databaseURL)
+
+		driver, err := migratepg.WithInstance(db, &migratepg.Config{})
+		m, err := migrate.NewWithDatabaseInstance(
+			"file://migrations",
+			"postgres", driver)
+		err = m.Up()
+		//postgres.RunMigration(cfg.DatabaseURI)
 		pool, err := pgxpool.Connect(context.Background(), cfg.DatabaseURI)
 		if err != nil {
 			err := errors.New("failed to connect to the database")
@@ -42,14 +55,6 @@ func Run(cfg *config.Config) {
 			os.Exit(1)
 		}
 
-		db, err := sql.Open("postgres", cfg.DatabaseURI)
-
-		driver, err := migratepg.WithInstance(db, &migratepg.Config{})
-		m, err := migrate.NewWithDatabaseInstance(
-			"file:///migrations",
-			"postgres", driver)
-		m.Up()
-		//postgres.RunMigration(cfg.DatabaseURI)
 		defer pool.Close()
 		orderStorage = postgres.NewOrderStoragePG(pool)
 		userStorage = postgres.NewUserStoragePG(pool)
