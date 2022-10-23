@@ -2,8 +2,6 @@ package postgres
 
 import (
 	"context"
-	"embed"
-	"time"
 
 	"github.com/jackc/pgx/v4/pgxpool"
 	"github.com/rs/zerolog/log"
@@ -11,12 +9,6 @@ import (
 	_ "github.com/golang-migrate/migrate/v4/database/postgres"
 	_ "github.com/golang-migrate/migrate/v4/source/file"
 )
-
-const _defaultAttempts = 5
-const _defaultTimeout = 10 * time.Second
-
-//go:embed migrations/*.sql
-var fs embed.FS
 
 func RunMigration(pool *pgxpool.Pool) {
 
