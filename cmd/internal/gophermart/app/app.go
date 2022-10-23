@@ -47,6 +47,9 @@ func Run(cfg *config.Config) {
 			"file://migrations",
 			"postgres", driver)
 		err = m.Up()
+		if !errors.Is(err, migrate.ErrNoChange) {
+			os.Exit(1)
+		}
 		//postgres.RunMigration(cfg.DatabaseURI)
 		pool, err := pgxpool.Connect(context.Background(), cfg.DatabaseURI)
 		if err != nil {
