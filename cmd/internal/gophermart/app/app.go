@@ -1,19 +1,20 @@
 package app
 
 import (
-	"github.com/apolsh/yapr-gophermart/cmd/internal/gophermart/controller/http"
+	"log"
+	"net/http"
+
+	//"github.com/apolsh/yapr-gophermart/cmd/internal/gophermart/controller/http"
+	//"github.com/apolsh/yapr-gophermart/cmd/internal/gophermart/controller/http"
 	"github.com/apolsh/yapr-gophermart/config"
 	"github.com/go-chi/chi/v5"
-	"github.com/rs/zerolog/log"
-	"github.com/shopspring/decimal"
 )
 
 func Run(cfg *config.Config) {
-	log.Info().Msg("Starting application ...")
 
 	//var userStorage storage.UserStorage = nil
 	//var orderStorage storage.OrderStorage = nil
-	decimal.MarshalJSONWithoutQuotes = true
+	//decimal.MarshalJSONWithoutQuotes = true
 	//
 	//if cfg.DatabaseType == "postgresql" {
 	//	_, err := pgxpool.ParseConfig(cfg.DatabaseURI)
@@ -33,7 +34,7 @@ func Run(cfg *config.Config) {
 	//	orderStorage = postgres.NewOrderStoragePG(pool)
 	//	userStorage = postgres.NewUserStoragePG(pool)
 	//}
-
+	//
 	//gophermartService, err := service.NewGophermartServiceImpl(*cfg, userStorage, orderStorage)
 	//if err != nil {
 	//	log.Error().Err(err).Msg(err.Error())
@@ -41,9 +42,12 @@ func Run(cfg *config.Config) {
 	//}
 
 	r := chi.NewRouter()
-	http.RegisterRoutes(r, nil)
+	log.Fatal(http.ListenAndServe(cfg.RunAddress, r))
+	//http.RegisterRoutes(r, nil)
+	//
+	//log.Fatal(http.ListenAndServe(cfg.ServerAddress, router))
 
-	_ = http.NewServer(r, cfg)
+	//httpServer := http.NewServer(r, cfg)
 	//
 	//interrupt := make(chan os.Signal, 1)
 	//signal.Notify(interrupt, os.Interrupt, syscall.SIGTERM)
