@@ -2,6 +2,7 @@ package app
 
 import (
 	"context"
+	"database/sql"
 	"errors"
 	"fmt"
 	"os"
@@ -14,6 +15,8 @@ import (
 	"github.com/apolsh/yapr-gophermart/cmd/internal/gophermart/storage/postgres"
 	"github.com/apolsh/yapr-gophermart/config"
 	"github.com/go-chi/chi/v5"
+	"github.com/golang-migrate/migrate/v4"
+	migratepg "github.com/golang-migrate/migrate/v4/database/postgres"
 	"github.com/jackc/pgx/v4/pgxpool"
 	"github.com/rs/zerolog/log"
 	"github.com/shopspring/decimal"
@@ -38,7 +41,15 @@ func Run(cfg *config.Config) {
 			log.Error().Err(err).Msg(err.Error())
 			os.Exit(1)
 		}
-		postgres.RunMigration(cfg.DatabaseURI)
+
+		db, err := sql.Open("postgres", cfg.DatabaseURI)
+
+		driver, err := migratepg.WithInstance(db, &migratepg.Config{})
+		m, err := migrate.NewWithDatabaseInstance(
+			"file:///migrations",
+			"postgres", driver)
+		m.Up()
+		//postgres.RunMigration(cfg.DatabaseURI)
 		defer pool.Close()
 		orderStorage = postgres.NewOrderStoragePG(pool)
 		userStorage = postgres.NewUserStoragePG(pool)
