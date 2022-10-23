@@ -9,7 +9,7 @@ on:
       - main
       - sprint5-6
       - sprint5-6_pgxv4
-      - spring5-6_without_migrations
+      - sprint5-6_without_migrations
 
 jobs:
 
