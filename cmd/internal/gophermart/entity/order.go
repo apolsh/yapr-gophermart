@@ -1,6 +1,7 @@
 package entity
 
 import (
+	"strconv"
 	"time"
 
 	"github.com/shopspring/decimal"
@@ -14,7 +15,7 @@ const (
 )
 
 type Order struct {
-	Number     int             `json:"number"`
+	Number     string          `json:"number"`
 	Status     string          `json:"status"`
 	Accrual    decimal.Decimal `json:"accrual,omitempty"`
 	UploadedAt time.Time       `json:"uploaded_at"`
@@ -23,7 +24,7 @@ type Order struct {
 
 func NewOrder(number int, userId string) Order {
 	return Order{
-		Number:     number,
+		Number:     strconv.Itoa(number),
 		UserId:     userId,
 		UploadedAt: time.Now(),
 		Status:     StatusNew,

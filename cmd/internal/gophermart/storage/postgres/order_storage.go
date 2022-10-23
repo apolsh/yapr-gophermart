@@ -3,6 +3,7 @@ package postgres
 import (
 	"context"
 	"errors"
+	"strconv"
 
 	"github.com/apolsh/yapr-gophermart/cmd/internal/gophermart/entity"
 	"github.com/apolsh/yapr-gophermart/cmd/internal/gophermart/storage"
@@ -28,7 +29,7 @@ func (o OrderStoragePG) SaveNewOrder(ctx context.Context, orderNum int, userID s
 	order := entity.NewOrder(orderNum, userID)
 	//language=postgresql
 	s := "INSERT INTO \"order\" (number, status, accrual, uploaded_at, user_id) VALUES ($1, $2, $3, $4, $5)"
-	_, err := o.pool.Exec(ctx, s, order.Number, order.Status, order.Accrual, order.UploadedAt, order.UserId)
+	_, err := o.pool.Exec(ctx, s, orderNum, order.Status, order.Accrual, order.UploadedAt, order.UserId)
 	var pgErr *pgconn.PgError
 	if err != nil {
 		if errors.As(err, &pgErr) {
@@ -73,7 +74,9 @@ func (o OrderStoragePG) GetOrdersByID(ctx context.Context, id string) ([]entity.
 	orders := make([]entity.Order, 0)
 	var order entity.Order
 	for rows.Next() {
-		err := rows.Scan(&order.Number, &order.Status, &order.Accrual, &order.UploadedAt, &order.UserId)
+		var intNum int
+		err := rows.Scan(&intNum, &order.Status, &order.Accrual, &order.UploadedAt, &order.UserId)
+		order.Number = strconv.Itoa(intNum)
 		if err != nil {
 			return nil, err
 		}

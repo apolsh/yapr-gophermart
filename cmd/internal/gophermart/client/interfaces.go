@@ -20,4 +20,5 @@ type LoyaltyPointsInfo struct {
 var (
 	TooManyRequestsError       = errors.New("loyalty service responded: too many requests")
 	UnknownLoyaltyServiceError = errors.New("unknown loyalty service error")
+	OrderIsNotRegisteredYet    = errors.New("order is not registered yet")
 )

@@ -130,6 +130,14 @@ func (g GophermartServiceImpl) getAccrualAsync(orderNum int) {
 			})
 		})
 	}
+	if errors.Is(client.OrderIsNotRegisteredYet, err) {
+		time.AfterFunc(15*time.Second, func() {
+			g.asyncWorker.ExecuteTask(func() {
+				g.getAccrualAsync(orderNum)
+			})
+		})
+	}
+
 	if err != nil {
 		log.Error().Err(err).Msg(err.Error())
 		return

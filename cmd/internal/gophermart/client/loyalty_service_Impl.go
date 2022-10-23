@@ -28,6 +28,9 @@ func (l LoyaltyServiceImpl) GetLoyaltyPoints(ctx context.Context, orderNum int) 
 	if err != nil {
 		return loyaltyPointsRes, err
 	}
+	if response.StatusCode() == http.StatusNoContent {
+		return loyaltyPointsRes, OrderIsNotRegisteredYet
+	}
 	if response.StatusCode() == http.StatusTooManyRequests {
 		return loyaltyPointsRes, TooManyRequestsError
 	}
