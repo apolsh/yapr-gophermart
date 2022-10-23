@@ -5,7 +5,6 @@ import (
 	"net/http"
 
 	"github.com/apolsh/yapr-gophermart/cmd/internal/gophermart/controller/httpserver"
-	"github.com/apolsh/yapr-gophermart/cmd/internal/gophermart/storage"
 	"github.com/apolsh/yapr-gophermart/config"
 	"github.com/go-chi/chi/v5"
 	"github.com/shopspring/decimal"
@@ -13,8 +12,8 @@ import (
 
 func Run(cfg *config.Config) {
 
-	var userStorage storage.UserStorage = nil
-	var orderStorage storage.OrderStorage = nil
+	//var userStorage storage.UserStorage = nil
+	//var orderStorage storage.OrderStorage = nil
 	decimal.MarshalJSONWithoutQuotes = true
 
 	//if cfg.DatabaseType == "postgresql" {
