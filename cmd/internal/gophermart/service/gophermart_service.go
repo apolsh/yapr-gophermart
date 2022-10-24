@@ -7,6 +7,7 @@ import (
 
 	"github.com/apolsh/yapr-gophermart/cmd/internal/gophermart/client"
 	"github.com/apolsh/yapr-gophermart/cmd/internal/gophermart/entity"
+	"github.com/apolsh/yapr-gophermart/cmd/internal/gophermart/entity/dto"
 	"github.com/apolsh/yapr-gophermart/cmd/internal/gophermart/storage"
 	"github.com/apolsh/yapr-gophermart/config"
 	"github.com/golang-jwt/jwt/v4"
@@ -119,6 +120,10 @@ func (g GophermartServiceImpl) AddOrder(ctx context.Context, orderNum int, userI
 	})
 
 	return nil
+}
+
+func (g GophermartServiceImpl) GetBalanceByUserID(ctx context.Context, id string) (dto.Balance, error) {
+	return g.orderStorage.GetBalanceByUserID(ctx, id)
 }
 
 func (g GophermartServiceImpl) getAccrualAsync(orderNum int) {

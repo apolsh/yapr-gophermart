@@ -197,7 +197,16 @@ func (c *controller) getOrders(w http.ResponseWriter, r *http.Request) {
 }
 
 func (c *controller) getBalance(w http.ResponseWriter, r *http.Request) {
-	//TODO: implement me
+	userID := r.Context().Value(UserID).(string)
+	balance, err := c.gophermartService.GetBalanceByUserID(r.Context(), userID)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+	w.WriteHeader(http.StatusOK)
+	if err := json.NewEncoder(w).Encode(balance); err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+	}
 }
 
 func (c *controller) createWithdraw(w http.ResponseWriter, r *http.Request) {

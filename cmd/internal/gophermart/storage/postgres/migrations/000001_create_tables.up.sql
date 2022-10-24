@@ -109,4 +109,8 @@ create trigger add_withdrawn_to_balance
     on withdrawal
     for each row
     execute procedure add_withdrawn_to_balance();
+
+alter table balance
+    add constraint current_non_negative check (current >= 0);
+
 COMMIT;

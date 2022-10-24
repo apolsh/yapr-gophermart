@@ -6,6 +6,7 @@ import (
 	"strconv"
 
 	"github.com/apolsh/yapr-gophermart/cmd/internal/gophermart/entity"
+	"github.com/apolsh/yapr-gophermart/cmd/internal/gophermart/entity/dto"
 	"github.com/apolsh/yapr-gophermart/cmd/internal/gophermart/storage"
 	"github.com/jackc/pgconn"
 	"github.com/jackc/pgx/v4/pgxpool"
@@ -17,7 +18,8 @@ type OrderStoragePG struct {
 }
 
 const (
-	constraintUniqOrderNumber = "order_pk"
+	constraintUniqOrderNumber    = "order_pk"
+	constraintNonNegativeBalance = "current_non_negative"
 )
 
 func NewOrderStoragePG(pool *pgxpool.Pool) storage.OrderStorage {
@@ -78,9 +80,20 @@ func (o OrderStoragePG) GetOrdersByID(ctx context.Context, id string) ([]entity.
 		err := rows.Scan(&intNum, &order.Status, &order.Accrual, &order.UploadedAt, &order.UserId)
 		order.Number = strconv.Itoa(intNum)
 		if err != nil {
-			return nil, err
+			return nil, storage.HandleUnknownDatabaseError(err)
 		}
 		orders = append(orders, order)
 	}
 	return orders, nil
+}
+
+func (o OrderStoragePG) GetBalanceByUserID(ctx context.Context, id string) (dto.Balance, error) {
+	q := "SELECT current, withdrawn FROM \"balance\" WHERE user_id = $1"
+	var balance dto.Balance
+
+	err := o.pool.QueryRow(ctx, q, id).Scan(&balance.Current, &balance.Withdrawn)
+	if err != nil {
+		return balance, storage.HandleUnknownDatabaseError(err)
+	}
+	return balance, nil
 }
