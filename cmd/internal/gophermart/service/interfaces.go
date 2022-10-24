@@ -15,6 +15,8 @@ type GophermartService interface {
 	AddOrder(ctx context.Context, orderNum int, userId string) error
 	GetOrdersByUser(ctx context.Context, id string) ([]entity.Order, error)
 	GetBalanceByUserID(ctx context.Context, id string) (dto.Balance, error)
+	CreateWithdraw(ctx context.Context, id string, withdraw dto.Withdraw) error
+	GetWithdrawalsByUserID(ctx context.Context, id string) ([]dto.Withdraw, error)
 }
 
 var (

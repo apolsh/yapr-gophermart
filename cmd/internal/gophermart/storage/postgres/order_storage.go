@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"strconv"
+	"time"
 
 	"github.com/apolsh/yapr-gophermart/cmd/internal/gophermart/entity"
 	"github.com/apolsh/yapr-gophermart/cmd/internal/gophermart/entity/dto"
@@ -66,6 +67,7 @@ func (o OrderStoragePG) UpdateOrder(ctx context.Context, orderNum int, status st
 }
 
 func (o OrderStoragePG) GetOrdersByID(ctx context.Context, id string) ([]entity.Order, error) {
+	//language=postgresql
 	q := "SELECT number, status, accrual, uploaded_at, user_id FROM \"order\" WHERE user_id = $1"
 
 	rows, err := o.pool.Query(ctx, q, id)
@@ -88,6 +90,7 @@ func (o OrderStoragePG) GetOrdersByID(ctx context.Context, id string) ([]entity.
 }
 
 func (o OrderStoragePG) GetBalanceByUserID(ctx context.Context, id string) (dto.Balance, error) {
+	//language=postgresql
 	q := "SELECT current, withdrawn FROM \"balance\" WHERE user_id = $1"
 	var balance dto.Balance
 
@@ -96,4 +99,43 @@ func (o OrderStoragePG) GetBalanceByUserID(ctx context.Context, id string) (dto.
 		return balance, storage.HandleUnknownDatabaseError(err)
 	}
 	return balance, nil
+}
+
+func (o OrderStoragePG) CreateWithdraw(ctx context.Context, id string, withdraw dto.Withdraw) error {
+	//language=postgresql
+	q := "INSERT INTO withdrawal (\"order\", sum, processed_at, user_id) VALUES ($1, $2, $3, $4)"
+	_, err := o.pool.Exec(ctx, q, withdraw.Order, withdraw.Sum, time.Now(), id)
+
+	var pgErr *pgconn.PgError
+	if err != nil {
+		if errors.As(err, &pgErr) {
+			if pgErr.ConstraintName == constraintNonNegativeBalance {
+				return storage.InsufficientFundsError
+			}
+		}
+		return storage.HandleUnknownDatabaseError(err)
+	}
+	return nil
+}
+
+func (o OrderStoragePG) GetWithdrawalsByUserID(ctx context.Context, id string) ([]dto.Withdraw, error) {
+	//language=postgresql
+	q := "SELECT \"order\", sum, processed_at FROM withdrawal WHERE user_id = $1"
+	rows, err := o.pool.Query(ctx, q, id)
+	if err != nil {
+		return nil, storage.HandleUnknownDatabaseError(err)
+	}
+
+	withdrawals := make([]dto.Withdraw, 0)
+	var withdraw dto.Withdraw
+	for rows.Next() {
+		var intNum int
+		err := rows.Scan(&intNum, &withdraw.Sum, &withdraw.ProcessedAt)
+		withdraw.Order = strconv.Itoa(intNum)
+		if err != nil {
+			return nil, storage.HandleUnknownDatabaseError(err)
+		}
+		withdrawals = append(withdrawals, withdraw)
+	}
+	return withdrawals, nil
 }

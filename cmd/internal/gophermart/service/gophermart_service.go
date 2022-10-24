@@ -3,6 +3,7 @@ package service
 import (
 	"context"
 	"errors"
+	"strconv"
 	"time"
 
 	"github.com/apolsh/yapr-gophermart/cmd/internal/gophermart/client"
@@ -124,6 +125,22 @@ func (g GophermartServiceImpl) AddOrder(ctx context.Context, orderNum int, userI
 
 func (g GophermartServiceImpl) GetBalanceByUserID(ctx context.Context, id string) (dto.Balance, error) {
 	return g.orderStorage.GetBalanceByUserID(ctx, id)
+}
+
+func (g GophermartServiceImpl) CreateWithdraw(ctx context.Context, id string, withdraw dto.Withdraw) error {
+	orderNum, err := strconv.Atoi(withdraw.Order)
+	if err != nil {
+		return ErrorInvalidOrderNumberFormat
+	}
+	err = validateOrderFormat(orderNum)
+	if err != nil {
+		return ErrorInvalidOrderNumberFormat
+	}
+	return g.orderStorage.CreateWithdraw(ctx, id, withdraw)
+}
+
+func (g GophermartServiceImpl) GetWithdrawalsByUserID(ctx context.Context, id string) ([]dto.Withdraw, error) {
+	return g.orderStorage.GetWithdrawalsByUserID(ctx, id)
 }
 
 func (g GophermartServiceImpl) getAccrualAsync(orderNum int) {

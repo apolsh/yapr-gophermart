@@ -21,6 +21,8 @@ type (
 		UpdateOrder(ctx context.Context, orderNum int, status string, accrual decimal.Decimal) error
 		GetOrdersByID(ctx context.Context, id string) ([]entity.Order, error)
 		GetBalanceByUserID(ctx context.Context, id string) (dto.Balance, error)
+		CreateWithdraw(ctx context.Context, id string, withdraw dto.Withdraw) error
+		GetWithdrawalsByUserID(ctx context.Context, id string) ([]dto.Withdraw, error)
 	}
 )
 
@@ -30,6 +32,7 @@ var (
 	OrderAlreadyStored            = errors.New("order is already uploaded by user")
 	OrderAlreadyStoredByOtherUser = errors.New("order is already uploaded by another user")
 	UnknownDatabaseError          = errors.New("unknown database error")
+	InsufficientFundsError        = errors.New("insufficient funds to complete the operation")
 )
 
 func HandleUnknownDatabaseError(err error) error {

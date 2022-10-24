@@ -11,6 +11,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/apolsh/yapr-gophermart/cmd/internal/gophermart/entity/dto"
 	"github.com/apolsh/yapr-gophermart/cmd/internal/gophermart/service"
 	"github.com/apolsh/yapr-gophermart/cmd/internal/gophermart/storage"
 	"github.com/go-chi/chi/v5"
@@ -210,11 +211,64 @@ func (c *controller) getBalance(w http.ResponseWriter, r *http.Request) {
 }
 
 func (c *controller) createWithdraw(w http.ResponseWriter, r *http.Request) {
-	//TODO: implement me
+	if !isValidContentType(r, "application/json", "application/x-gzip") {
+		http.Error(w, "", http.StatusBadRequest)
+		return
+	}
+	reader, err := getBodyReader(r)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusUnprocessableEntity)
+		return
+	}
+	defer reader.Close()
+
+	var withdraw dto.Withdraw
+
+	if err := json.NewDecoder(reader).Decode(&withdraw); err != nil {
+		http.Error(w, "", http.StatusBadRequest)
+		return
+	}
+
+	userID := r.Context().Value(UserID).(string)
+
+	err = c.gophermartService.CreateWithdraw(r.Context(), userID, withdraw)
+	if err != nil {
+		if errors.Is(service.ErrorInvalidOrderNumberFormat, err) {
+			http.Error(w, "", http.StatusUnprocessableEntity)
+			return
+		}
+
+		if errors.Is(storage.InsufficientFundsError, err) {
+			http.Error(w, "", http.StatusPaymentRequired)
+			return
+		}
+
+		http.Error(w, "", http.StatusInternalServerError)
+		return
+	}
+	w.WriteHeader(http.StatusOK)
 }
 
 func (c *controller) getWithdrawals(w http.ResponseWriter, r *http.Request) {
-	//TODO: implement me
+	userID := r.Context().Value(UserID).(string)
+
+	withdrawals, err := c.gophermartService.GetWithdrawalsByUserID(r.Context(), userID)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	w.Header().Set("Content-Type", "application/json; charset=utf-8")
+
+	if len(withdrawals) == 0 {
+		w.WriteHeader(http.StatusNoContent)
+	} else {
+		w.WriteHeader(http.StatusOK)
+	}
+
+	if err := json.NewEncoder(w).Encode(withdrawals); err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+	}
 }
 
 func isValidContentType(r *http.Request, allowedTypes ...string) bool {
