@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"io"
 	"net/http"
+	"strconv"
 	"strings"
 	"time"
 
@@ -123,7 +124,7 @@ func (c *controller) createOrder(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	var num string
+	var num int
 	err := extractJSONBody(r, &num)
 	if err != nil {
 		http.Error(w, "", http.StatusBadRequest)
@@ -132,7 +133,7 @@ func (c *controller) createOrder(w http.ResponseWriter, r *http.Request) {
 
 	userID := r.Context().Value(UserID).(string)
 
-	err = c.gophermartService.AddOrder(r.Context(), num, userID)
+	err = c.gophermartService.AddOrder(r.Context(), strconv.Itoa(num), userID)
 	if err != nil {
 		if errors.Is(service.ErrorInvalidOrderNumberFormat, err) {
 			http.Error(w, "", http.StatusUnprocessableEntity)
