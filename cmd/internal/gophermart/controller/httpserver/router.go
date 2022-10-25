@@ -62,16 +62,10 @@ func (c *controller) userRegisterHandler(w http.ResponseWriter, r *http.Request)
 		http.Error(w, "", http.StatusBadRequest)
 		return
 	}
-	reader, err := getBodyReader(r)
-	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
-		return
-	}
-	defer reader.Close()
 
 	req := &AuthRequest{}
-
-	if err = json.NewDecoder(reader).Decode(&req); err != nil {
+	err := extractJSONBody(r, &req)
+	if err != nil {
 		http.Error(w, "", http.StatusBadRequest)
 		return
 	}
@@ -93,6 +87,23 @@ func (c *controller) userRegisterHandler(w http.ResponseWriter, r *http.Request)
 	w.Header().Add("Authorization", token)
 	http.SetCookie(w, &http.Cookie{Name: "Authorization", Value: fmt.Sprintf("Bearer %s", token)})
 	w.WriteHeader(http.StatusOK)
+}
+
+func extractJSONBody(r *http.Request, v any) error {
+	var reader io.ReadCloser
+	if r.Header.Get(`Content-Encoding`) == `gzip` {
+		gz, err := gzip.NewReader(r.Body)
+		if err != nil {
+			return err
+		}
+		reader = gz
+	}
+	reader = r.Body
+	defer reader.Close()
+	if err := json.NewDecoder(reader).Decode(v); err != nil {
+		return err
+	}
+	return nil
 }
 
 func (c *controller) userLoginHandler(w http.ResponseWriter, r *http.Request) {

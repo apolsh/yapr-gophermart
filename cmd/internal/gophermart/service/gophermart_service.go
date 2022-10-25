@@ -117,7 +117,7 @@ func (g GophermartServiceImpl) AddOrder(ctx context.Context, orderNum int, userI
 	}
 
 	g.asyncWorker.ExecuteTask(func() {
-		g.getAccrualAsync(orderNum)
+		g.getAccrualAsync(0, orderNum)
 	})
 
 	return nil
@@ -143,19 +143,23 @@ func (g GophermartServiceImpl) GetWithdrawalsByUserID(ctx context.Context, id st
 	return g.orderStorage.GetWithdrawalsByUserID(ctx, id)
 }
 
-func (g GophermartServiceImpl) getAccrualAsync(orderNum int) {
+func (g GophermartServiceImpl) getAccrualAsync(numOfTry int, orderNum int) {
+	if numOfTry > 10 {
+		return
+	}
+	numOfTry++
 	loyaltyInfo, err := g.loyaltyService.GetLoyaltyPoints(context.Background(), orderNum)
 	if errors.Is(client.ErrTooManyRequests, err) {
 		time.AfterFunc(1*time.Minute, func() {
 			g.asyncWorker.ExecuteTask(func() {
-				g.getAccrualAsync(orderNum)
+				g.getAccrualAsync(numOfTry, orderNum)
 			})
 		})
 	}
 	if errors.Is(client.ErrOrderIsNotRegisteredYet, err) {
 		time.AfterFunc(15*time.Second, func() {
 			g.asyncWorker.ExecuteTask(func() {
-				g.getAccrualAsync(orderNum)
+				g.getAccrualAsync(numOfTry, orderNum)
 			})
 		})
 	}
@@ -167,7 +171,7 @@ func (g GophermartServiceImpl) getAccrualAsync(orderNum int) {
 	if loyaltyInfo.Status == "PROCESSING" || loyaltyInfo.Status == "REGISTERED" {
 		time.AfterFunc(15*time.Second, func() {
 			g.asyncWorker.ExecuteTask(func() {
-				g.getAccrualAsync(orderNum)
+				g.getAccrualAsync(numOfTry, orderNum)
 			})
 		})
 	}

@@ -10,7 +10,6 @@ import (
 
 const (
 	authCookieName = "Authorization"
-	//UserID         = "UserID"
 )
 
 type ContextKey string
