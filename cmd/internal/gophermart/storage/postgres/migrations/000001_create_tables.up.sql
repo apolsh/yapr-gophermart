@@ -26,8 +26,7 @@ create table if not exists "order"
 
 create table if not exists withdrawal
 (
-    "order"      bigint                  not null
-    constraint withdrawal_pk primary key ("order"),
+    "order"      bigint                  not null,
     sum          numeric(12, 2)           not null,
     processed_at timestamp with time zone not null,
                                user_id      uuid
@@ -35,6 +34,9 @@ create table if not exists withdrawal
                                references "user"
                                on delete cascade
                                );
+alter table withdrawal
+    add constraint withdrawal_pk
+        primary key ("order");
 
 create table if not exists balance
 (
