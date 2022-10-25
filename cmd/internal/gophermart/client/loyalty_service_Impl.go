@@ -29,13 +29,13 @@ func (l LoyaltyServiceImpl) GetLoyaltyPoints(ctx context.Context, orderNum int) 
 		return loyaltyPointsRes, err
 	}
 	if response.StatusCode() == http.StatusNoContent {
-		return loyaltyPointsRes, OrderIsNotRegisteredYet
+		return loyaltyPointsRes, ErrOrderIsNotRegisteredYet
 	}
 	if response.StatusCode() == http.StatusTooManyRequests {
-		return loyaltyPointsRes, TooManyRequestsError
+		return loyaltyPointsRes, ErrTooManyRequests
 	}
 	if response.StatusCode() == http.StatusInternalServerError {
-		return loyaltyPointsRes, UnknownLoyaltyServiceError
+		return loyaltyPointsRes, ErrUnknownLoyaltyService
 	}
 
 	return loyaltyPointsRes, nil

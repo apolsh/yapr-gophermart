@@ -27,15 +27,15 @@ type (
 )
 
 var (
-	ErrorLoginIsAlreadyUsed       = errors.New("login is already used")
-	ItemNotFound                  = errors.New("requested element not found")
-	OrderAlreadyStored            = errors.New("order is already uploaded by user")
-	OrderAlreadyStoredByOtherUser = errors.New("order is already uploaded by another user")
-	UnknownDatabaseError          = errors.New("unknown database error")
-	InsufficientFundsError        = errors.New("insufficient funds to complete the operation")
+	ErrorLoginIsAlreadyUsed          = errors.New("login is already used")
+	ErrItemNotFound                  = errors.New("requested element not found")
+	ErrOrderAlreadyStored            = errors.New("order is already uploaded by user")
+	ErrOrderAlreadyStoredByOtherUser = errors.New("order is already uploaded by another user")
+	ErrUnknownDatabase               = errors.New("unknown database error")
+	ErrInsufficientFunds             = errors.New("insufficient funds to complete the operation")
 )
 
 func HandleUnknownDatabaseError(err error) error {
 	log.Error().Err(err).Msg(err.Error())
-	return UnknownDatabaseError
+	return ErrUnknownDatabase
 }

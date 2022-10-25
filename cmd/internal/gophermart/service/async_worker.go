@@ -6,7 +6,7 @@ type AsyncWorker struct {
 	workerTaskCh chan func()
 }
 
-var IllegalArgumentMaxWorkOnFly = errors.New("illegal argument: number of max work on fly")
+var ErrIllegalArgumentMaxWorkOnFly = errors.New("illegal argument: number of max work on fly")
 
 func (w AsyncWorker) ExecuteTask(task func()) {
 	go func() {
@@ -16,7 +16,7 @@ func (w AsyncWorker) ExecuteTask(task func()) {
 
 func NewAsyncWorker(maxWorkOnFly int) (*AsyncWorker, error) {
 	if maxWorkOnFly < 2 {
-		return &AsyncWorker{}, IllegalArgumentMaxWorkOnFly
+		return &AsyncWorker{}, ErrIllegalArgumentMaxWorkOnFly
 	}
 
 	workerTaskCh := make(chan func(), maxWorkOnFly)

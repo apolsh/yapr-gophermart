@@ -117,7 +117,7 @@ func (c *controller) userLoginHandler(w http.ResponseWriter, r *http.Request) {
 
 	token, err := c.gophermartService.LoginUser(r.Context(), req.Login, req.Password)
 	if err != nil {
-		if errors.Is(storage.ItemNotFound, err) || errors.Is(service.ErrorInvalidPassword, err) {
+		if errors.Is(storage.ErrItemNotFound, err) || errors.Is(service.ErrorInvalidPassword, err) {
 			http.Error(w, err.Error(), http.StatusUnauthorized)
 			return
 		}
@@ -161,15 +161,15 @@ func (c *controller) createOrder(w http.ResponseWriter, r *http.Request) {
 			http.Error(w, "", http.StatusUnprocessableEntity)
 			return
 		}
-		if errors.Is(storage.OrderAlreadyStored, err) {
+		if errors.Is(storage.ErrOrderAlreadyStored, err) {
 			w.WriteHeader(http.StatusOK)
 			return
 		}
-		if errors.Is(storage.OrderAlreadyStoredByOtherUser, err) {
+		if errors.Is(storage.ErrOrderAlreadyStoredByOtherUser, err) {
 			http.Error(w, "", http.StatusConflict)
 			return
 		}
-		if errors.Is(storage.UnknownDatabaseError, err) {
+		if errors.Is(storage.ErrUnknownDatabase, err) {
 			http.Error(w, "", http.StatusHTTPVersionNotSupported)
 		}
 		http.Error(w, err.Error(), http.StatusGone)
@@ -239,7 +239,7 @@ func (c *controller) createWithdraw(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 
-		if errors.Is(storage.InsufficientFundsError, err) {
+		if errors.Is(storage.ErrInsufficientFunds, err) {
 			http.Error(w, "", http.StatusPaymentRequired)
 			return
 		}

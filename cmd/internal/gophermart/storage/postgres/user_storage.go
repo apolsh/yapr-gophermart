@@ -43,10 +43,10 @@ func (s UserStoragePG) NewUser(ctx context.Context, login, hashedPassword string
 func (s UserStoragePG) Get(ctx context.Context, login string) (entity.User, error) {
 	q := "SELECT id, login, password from \"user\" WHERE login = $1"
 	var user entity.User
-	err := s.pool.QueryRow(ctx, q, login).Scan(&user.Id, &user.Login, &user.HashedPassword)
+	err := s.pool.QueryRow(ctx, q, login).Scan(&user.ID, &user.Login, &user.HashedPassword)
 	if err != nil {
 		if errors.Is(pgx.ErrNoRows, err) {
-			return entity.User{}, storage.ItemNotFound
+			return entity.User{}, storage.ErrItemNotFound
 		}
 		//TODO: throw err add logging
 	}

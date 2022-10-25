@@ -10,8 +10,12 @@ import (
 
 const (
 	authCookieName = "Authorization"
-	UserID         = "UserID"
+	//UserID         = "UserID"
 )
+
+type ContextKey string
+
+var UserID ContextKey = "UserID"
 
 func AuthMiddleware(parseCallback func(string) (string, error)) func(handler http.Handler) http.Handler {
 	return func(next http.Handler) http.Handler {

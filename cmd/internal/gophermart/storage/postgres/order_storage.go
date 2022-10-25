@@ -32,23 +32,23 @@ func (o OrderStoragePG) SaveNewOrder(ctx context.Context, orderNum int, userID s
 	order := entity.NewOrder(orderNum, userID)
 	//language=postgresql
 	s := "INSERT INTO \"order\" (number, status, accrual, uploaded_at, user_id) VALUES ($1, $2, $3, $4, $5)"
-	_, err := o.pool.Exec(ctx, s, orderNum, order.Status, order.Accrual, order.UploadedAt, order.UserId)
+	_, err := o.pool.Exec(ctx, s, orderNum, order.Status, order.Accrual, order.UploadedAt, order.UserID)
 	var pgErr *pgconn.PgError
 	if err != nil {
 		if errors.As(err, &pgErr) {
 			if pgErr.ConstraintName == constraintUniqOrderNumber {
-				var userId string
+				var userID string
 				//language=postgresql
 				q := "SELECT user_id FROM \"order\" WHERE number = $1"
-				err := o.pool.QueryRow(ctx, q, order.Number).Scan(&userId)
+				err := o.pool.QueryRow(ctx, q, order.Number).Scan(&userID)
 				if err != nil {
 					return storage.HandleUnknownDatabaseError(err)
 				}
 
-				if userId == order.UserId {
-					return storage.OrderAlreadyStored
+				if userID == order.UserID {
+					return storage.ErrOrderAlreadyStored
 				}
-				return storage.OrderAlreadyStoredByOtherUser
+				return storage.ErrOrderAlreadyStoredByOtherUser
 			}
 		}
 		return storage.HandleUnknownDatabaseError(err)
@@ -79,7 +79,7 @@ func (o OrderStoragePG) GetOrdersByID(ctx context.Context, id string) ([]entity.
 	var order entity.Order
 	for rows.Next() {
 		var intNum int
-		err := rows.Scan(&intNum, &order.Status, &order.Accrual, &order.UploadedAt, &order.UserId)
+		err := rows.Scan(&intNum, &order.Status, &order.Accrual, &order.UploadedAt, &order.UserID)
 		order.Number = strconv.Itoa(intNum)
 		if err != nil {
 			return nil, storage.HandleUnknownDatabaseError(err)
@@ -110,7 +110,7 @@ func (o OrderStoragePG) CreateWithdraw(ctx context.Context, id string, withdraw 
 	if err != nil {
 		if errors.As(err, &pgErr) {
 			if pgErr.ConstraintName == constraintNonNegativeBalance {
-				return storage.InsufficientFundsError
+				return storage.ErrInsufficientFunds
 			}
 		}
 		return storage.HandleUnknownDatabaseError(err)

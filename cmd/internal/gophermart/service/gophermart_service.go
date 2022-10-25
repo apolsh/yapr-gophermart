@@ -26,7 +26,7 @@ type GophermartServiceImpl struct {
 
 type jwtTokenClaims struct {
 	jwt.RegisteredClaims
-	UserId string `json:"user_id"`
+	UserID string `json:"user_id"`
 }
 
 func NewGophermartServiceImpl(cfg config.Config, userStorage storage.UserStorage, orderStorage storage.OrderStorage) (GophermartService, error) {
@@ -84,7 +84,7 @@ func (g GophermartServiceImpl) LoginUser(ctx context.Context, login, password st
 		return "", ErrorInvalidPassword
 	}
 
-	return g.generateToken(user.Id)
+	return g.generateToken(user.ID)
 }
 
 func (g GophermartServiceImpl) ParseJWTToken(tokenString string) (string, error) {
@@ -102,16 +102,16 @@ func (g GophermartServiceImpl) ParseJWTToken(tokenString string) (string, error)
 	if !ok {
 		return "", errors.New("invalid token claims type")
 	}
-	return claims.UserId, nil
+	return claims.UserID, nil
 }
 
-func (g GophermartServiceImpl) AddOrder(ctx context.Context, orderNum int, userId string) error {
+func (g GophermartServiceImpl) AddOrder(ctx context.Context, orderNum int, userID string) error {
 	err := validateOrderFormat(orderNum)
 	if err != nil {
 		return err
 	}
 
-	err = g.orderStorage.SaveNewOrder(ctx, orderNum, userId)
+	err = g.orderStorage.SaveNewOrder(ctx, orderNum, userID)
 	if err != nil {
 		return err
 	}
@@ -145,14 +145,14 @@ func (g GophermartServiceImpl) GetWithdrawalsByUserID(ctx context.Context, id st
 
 func (g GophermartServiceImpl) getAccrualAsync(orderNum int) {
 	loyaltyInfo, err := g.loyaltyService.GetLoyaltyPoints(context.Background(), orderNum)
-	if errors.Is(client.TooManyRequestsError, err) {
+	if errors.Is(client.ErrTooManyRequests, err) {
 		time.AfterFunc(1*time.Minute, func() {
 			g.asyncWorker.ExecuteTask(func() {
 				g.getAccrualAsync(orderNum)
 			})
 		})
 	}
-	if errors.Is(client.OrderIsNotRegisteredYet, err) {
+	if errors.Is(client.ErrOrderIsNotRegisteredYet, err) {
 		time.AfterFunc(15*time.Second, func() {
 			g.asyncWorker.ExecuteTask(func() {
 				g.getAccrualAsync(orderNum)
