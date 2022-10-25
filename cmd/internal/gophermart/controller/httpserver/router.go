@@ -16,6 +16,7 @@ import (
 	"github.com/apolsh/yapr-gophermart/cmd/internal/gophermart/storage"
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"
+	"github.com/rs/zerolog/log"
 )
 
 type AuthRequest struct {
@@ -272,7 +273,12 @@ func extractJSONBody(r *http.Request, v interface{}) error {
 		reader = gz
 	}
 	reader = r.Body
-	defer reader.Close()
+	defer func(reader io.ReadCloser) {
+		err := reader.Close()
+		if err != nil {
+			log.Err(err).Msg(err.Error())
+		}
+	}(reader)
 	if err := json.NewDecoder(reader).Decode(v); err != nil {
 		return err
 	}
