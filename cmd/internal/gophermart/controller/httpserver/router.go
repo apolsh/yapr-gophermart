@@ -123,18 +123,14 @@ func (c *controller) createOrder(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "", http.StatusBadRequest)
 		return
 	}
-	reader, err := getBodyReader(r)
-	if err != nil {
-		http.Error(w, err.Error(), http.StatusUnprocessableEntity)
-		return
-	}
-	defer reader.Close()
 
-	body, err := io.ReadAll(reader)
+	var body int
+	err := extractJSONBody(r, &body)
 	if err != nil {
-		http.Error(w, "", http.StatusInternalServerError)
+		http.Error(w, "", http.StatusBadRequest)
 		return
 	}
+
 	num, err := strconv.Atoi(string(body))
 	if err != nil {
 		http.Error(w, "", http.StatusBadRequest)
