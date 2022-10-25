@@ -7,7 +7,6 @@ import (
 	"fmt"
 	"io"
 	"net/http"
-	"strconv"
 	"strings"
 	"time"
 
@@ -124,18 +123,13 @@ func (c *controller) createOrder(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	var body int
-	err := extractJSONBody(r, &body)
+	var num int
+	err := extractJSONBody(r, &num)
 	if err != nil {
 		http.Error(w, "", http.StatusBadRequest)
 		return
 	}
 
-	num, err := strconv.Atoi(string(body))
-	if err != nil {
-		http.Error(w, "", http.StatusBadRequest)
-		return
-	}
 	userID := r.Context().Value(UserID).(string)
 
 	err = c.gophermartService.AddOrder(r.Context(), num, userID)
