@@ -27,7 +27,7 @@ func AuthMiddleware(parseCallback func(string) (string, error)) func(handler htt
 			}
 			cookieParts := strings.Split(cookie.Value, " ")
 			if len(cookieParts) != 2 {
-				http.Error(w, err.Error(), http.StatusUnauthorized)
+				http.Error(w, "", http.StatusUnauthorized)
 				return
 			}
 
