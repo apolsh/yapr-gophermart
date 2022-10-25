@@ -17,8 +17,8 @@ type (
 	}
 
 	OrderStorage interface {
-		SaveNewOrder(ctx context.Context, orderNum int, userID string) error
-		UpdateOrder(ctx context.Context, orderNum int, status string, accrual decimal.Decimal) error
+		SaveNewOrder(ctx context.Context, orderNum string, userID string) error
+		UpdateOrder(ctx context.Context, orderNum string, status string, accrual decimal.Decimal) error
 		GetOrdersByID(ctx context.Context, id string) ([]entity.Order, error)
 		GetBalanceByUserID(ctx context.Context, id string) (dto.Balance, error)
 		CreateWithdraw(ctx context.Context, id string, withdraw dto.Withdraw) error

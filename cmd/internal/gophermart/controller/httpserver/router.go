@@ -123,7 +123,7 @@ func (c *controller) createOrder(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	var num int
+	var num string
 	err := extractJSONBody(r, &num)
 	if err != nil {
 		http.Error(w, "", http.StatusBadRequest)

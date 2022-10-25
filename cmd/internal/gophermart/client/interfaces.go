@@ -8,7 +8,7 @@ import (
 )
 
 type LoyaltyService interface {
-	GetLoyaltyPoints(ctx context.Context, orderNum int) (LoyaltyPointsInfo, error)
+	GetLoyaltyPoints(ctx context.Context, orderNum string) (LoyaltyPointsInfo, error)
 }
 
 type LoyaltyPointsInfo struct {

@@ -4,7 +4,6 @@ import (
 	"context"
 	"fmt"
 	"net/http"
-	"strconv"
 
 	"github.com/go-resty/resty/v2"
 )
@@ -19,12 +18,12 @@ func NewLoyaltyServiceImpl(baseURL string) (LoyaltyService, error) {
 	return &LoyaltyServiceImpl{client: client, baseURL: baseURL}, nil
 }
 
-func (l LoyaltyServiceImpl) GetLoyaltyPoints(ctx context.Context, orderNum int) (LoyaltyPointsInfo, error) {
+func (l LoyaltyServiceImpl) GetLoyaltyPoints(ctx context.Context, orderNum string) (LoyaltyPointsInfo, error) {
 	loyaltyPointsRes := LoyaltyPointsInfo{}
 	response, err := l.client.R().
 		SetContext(ctx).
 		SetResult(&loyaltyPointsRes).
-		Get(fmt.Sprintf("%s/api/orders/%s", l.baseURL, strconv.Itoa(orderNum)))
+		Get(fmt.Sprintf("%s/api/orders/%s", l.baseURL, orderNum))
 	if err != nil {
 		return loyaltyPointsRes, err
 	}

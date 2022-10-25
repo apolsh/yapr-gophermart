@@ -1,7 +1,6 @@
 package entity
 
 import (
-	"strconv"
 	"time"
 
 	"github.com/shopspring/decimal"
@@ -22,9 +21,9 @@ type Order struct {
 	UserID     string          `json:"-"`
 }
 
-func NewOrder(number int, userID string) Order {
+func NewOrder(number string, userID string) Order {
 	return Order{
-		Number:     strconv.Itoa(number),
+		Number:     number,
 		UserID:     userID,
 		UploadedAt: time.Now(),
 		Status:     StatusNew,

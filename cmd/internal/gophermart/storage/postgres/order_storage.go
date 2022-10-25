@@ -3,7 +3,6 @@ package postgres
 import (
 	"context"
 	"errors"
-	"strconv"
 	"time"
 
 	"github.com/apolsh/yapr-gophermart/cmd/internal/gophermart/entity"
@@ -28,7 +27,7 @@ func NewOrderStoragePG(pool *pgxpool.Pool) storage.OrderStorage {
 	return &OrderStoragePG{pool: pool}
 }
 
-func (o OrderStoragePG) SaveNewOrder(ctx context.Context, orderNum int, userID string) error {
+func (o OrderStoragePG) SaveNewOrder(ctx context.Context, orderNum string, userID string) error {
 	order := entity.NewOrder(orderNum, userID)
 	//language=postgresql
 	s := "INSERT INTO \"order\" (number, status, accrual, uploaded_at, user_id) VALUES ($1, $2, $3, $4, $5)"
@@ -56,7 +55,7 @@ func (o OrderStoragePG) SaveNewOrder(ctx context.Context, orderNum int, userID s
 	return nil
 }
 
-func (o OrderStoragePG) UpdateOrder(ctx context.Context, orderNum int, status string, accrual decimal.Decimal) error {
+func (o OrderStoragePG) UpdateOrder(ctx context.Context, orderNum string, status string, accrual decimal.Decimal) error {
 	//language=postgresql
 	q := "UPDATE \"order\" SET status = $1, accrual = $2 WHERE number = $3"
 	_, err := o.pool.Exec(ctx, q, status, accrual, orderNum)
@@ -78,9 +77,7 @@ func (o OrderStoragePG) GetOrdersByID(ctx context.Context, id string) ([]entity.
 	orders := make([]entity.Order, 0)
 	var order entity.Order
 	for rows.Next() {
-		var intNum int
-		err := rows.Scan(&intNum, &order.Status, &order.Accrual, &order.UploadedAt, &order.UserID)
-		order.Number = strconv.Itoa(intNum)
+		err := rows.Scan(&order.Number, &order.Status, &order.Accrual, &order.UploadedAt, &order.UserID)
 		if err != nil {
 			return nil, storage.HandleUnknownDatabaseError(err)
 		}
@@ -129,9 +126,7 @@ func (o OrderStoragePG) GetWithdrawalsByUserID(ctx context.Context, id string) (
 	withdrawals := make([]dto.Withdraw, 0)
 	var withdraw dto.Withdraw
 	for rows.Next() {
-		var intNum int
-		err := rows.Scan(&intNum, &withdraw.Sum, &withdraw.ProcessedAt)
-		withdraw.Order = strconv.Itoa(intNum)
+		err := rows.Scan(&withdraw.Order, &withdraw.Sum, &withdraw.ProcessedAt)
 		if err != nil {
 			return nil, storage.HandleUnknownDatabaseError(err)
 		}

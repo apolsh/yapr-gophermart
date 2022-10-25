@@ -12,7 +12,7 @@ create unique index if not exists user_login_uindex
 
 create table if not exists "order"
 (
-    number      bigint                  not null
+    number      varchar(255)                  not null
     constraint order_pk
     primary key,
     status      varchar(255)             not null,
@@ -26,7 +26,7 @@ create table if not exists "order"
 
 create table if not exists withdrawal
 (
-    "order"      bigint                  not null,
+    "order"      varchar(255)                  not null,
     sum          numeric(12, 2)           not null,
     processed_at timestamp with time zone not null,
                                user_id      uuid

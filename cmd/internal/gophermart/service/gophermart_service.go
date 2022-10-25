@@ -105,7 +105,7 @@ func (g GophermartServiceImpl) ParseJWTToken(tokenString string) (string, error)
 	return claims.UserID, nil
 }
 
-func (g GophermartServiceImpl) AddOrder(ctx context.Context, orderNum int, userID string) error {
+func (g GophermartServiceImpl) AddOrder(ctx context.Context, orderNum string, userID string) error {
 	err := validateOrderFormat(orderNum)
 	if err != nil {
 		return err
@@ -128,11 +128,7 @@ func (g GophermartServiceImpl) GetBalanceByUserID(ctx context.Context, id string
 }
 
 func (g GophermartServiceImpl) CreateWithdraw(ctx context.Context, id string, withdraw dto.Withdraw) error {
-	orderNum, err := strconv.Atoi(withdraw.Order)
-	if err != nil {
-		return ErrorInvalidOrderNumberFormat
-	}
-	err = validateOrderFormat(orderNum)
+	err := validateOrderFormat(withdraw.Order)
 	if err != nil {
 		return ErrorInvalidOrderNumberFormat
 	}
@@ -143,7 +139,7 @@ func (g GophermartServiceImpl) GetWithdrawalsByUserID(ctx context.Context, id st
 	return g.orderStorage.GetWithdrawalsByUserID(ctx, id)
 }
 
-func (g GophermartServiceImpl) getAccrualAsync(numOfTry int, orderNum int) {
+func (g GophermartServiceImpl) getAccrualAsync(numOfTry int, orderNum string) {
 	if numOfTry > 10 {
 		return
 	}
@@ -186,7 +182,12 @@ func (g GophermartServiceImpl) GetOrdersByUser(ctx context.Context, id string) (
 	return g.orderStorage.GetOrdersByID(ctx, id)
 }
 
-func validateOrderFormat(orderNum int) error {
+func validateOrderFormat(orderNumAsString string) error {
+	orderNum, err := strconv.Atoi(orderNumAsString)
+	if err != nil {
+		return ErrorInvalidOrderNumberFormat
+	}
+
 	var checksum int
 
 	for i := 1; orderNum > 0; i++ {

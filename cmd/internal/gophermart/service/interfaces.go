@@ -12,7 +12,7 @@ type GophermartService interface {
 	AddUser(ctx context.Context, login, password string) (string, error)
 	LoginUser(ctx context.Context, login, password string) (string, error)
 	ParseJWTToken(token string) (string, error)
-	AddOrder(ctx context.Context, orderNum int, userID string) error
+	AddOrder(ctx context.Context, orderNum string, userID string) error
 	GetOrdersByUser(ctx context.Context, id string) ([]entity.Order, error)
 	GetBalanceByUserID(ctx context.Context, id string) (dto.Balance, error)
 	CreateWithdraw(ctx context.Context, id string, withdraw dto.Withdraw) error
