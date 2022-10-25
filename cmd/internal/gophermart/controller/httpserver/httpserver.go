@@ -10,6 +10,7 @@ import (
 
 const (
 	_defaultShutdownTimeout = 3 * time.Second
+	authorizationHeaderKey  = "Authorization"
 )
 
 type Server struct {

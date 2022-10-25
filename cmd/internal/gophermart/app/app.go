@@ -48,11 +48,6 @@ func Run(cfg *config.Config) {
 		orderStorage = postgres.NewOrderStoragePG(pool)
 		userStorage = postgres.NewUserStoragePG(pool)
 	}
-	log.Info().Msg(cfg.RunAddress)
-	log.Info().Msg(cfg.AccrualSystemAddress)
-	log.Info().Msg(cfg.TokenSecretKey)
-	log.Info().Msg(cfg.DatabaseType)
-	log.Info().Msg(cfg.DatabaseURI)
 
 	gophermartService, err := service.NewGophermartServiceImpl(*cfg, userStorage, orderStorage)
 	if err != nil {

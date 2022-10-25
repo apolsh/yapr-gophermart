@@ -27,6 +27,12 @@ type controller struct {
 	gophermartService service.GophermartService
 }
 
+const (
+	applicationJsonContentType  = "application/json"
+	textPlainContentType        = "text/plain"
+	applicationXGzipContentType = "application/x-gzip"
+)
+
 func RegisterRoutes(r *chi.Mux, s service.GophermartService) {
 	c := &controller{gophermartService: s}
 
@@ -58,7 +64,7 @@ func RegisterRoutes(r *chi.Mux, s service.GophermartService) {
 }
 
 func (c *controller) userRegisterHandler(w http.ResponseWriter, r *http.Request) {
-	if !isValidContentType(r, "application/json", "application/x-gzip") {
+	if !isValidContentType(r, applicationJsonContentType, applicationXGzipContentType) {
 		http.Error(w, "", http.StatusBadRequest)
 		return
 	}
@@ -84,13 +90,14 @@ func (c *controller) userRegisterHandler(w http.ResponseWriter, r *http.Request)
 		return
 	}
 
-	w.Header().Add("Authorization", token)
-	http.SetCookie(w, &http.Cookie{Name: "Authorization", Value: fmt.Sprintf("Bearer %s", token)})
+	w.Header().Add(authorizationHeaderKey, token)
+	http.SetCookie(w, &http.Cookie{Name: authorizationHeaderKey, Value: fmt.Sprintf("Bearer %s", token)})
 	w.WriteHeader(http.StatusOK)
 }
 
 func (c *controller) userLoginHandler(w http.ResponseWriter, r *http.Request) {
-	if !isValidContentType(r, "application/json", "application/x-gzip") {
+
+	if !isValidContentType(r, applicationJsonContentType, applicationXGzipContentType) {
 		http.Error(w, "", http.StatusBadRequest)
 		return
 	}
@@ -113,19 +120,19 @@ func (c *controller) userLoginHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	w.Header().Add("Authorization", token)
-	http.SetCookie(w, &http.Cookie{Name: "Authorization", Value: fmt.Sprintf("Bearer %s", token)})
+	w.Header().Add(authorizationHeaderKey, token)
+	http.SetCookie(w, &http.Cookie{Name: authorizationHeaderKey, Value: fmt.Sprintf("Bearer %s", token)})
 	w.WriteHeader(http.StatusOK)
 }
 
 func (c *controller) createOrder(w http.ResponseWriter, r *http.Request) {
-	if !isValidContentType(r, "text/plain", "application/x-gzip") {
+	if !isValidContentType(r, textPlainContentType, applicationXGzipContentType) {
 		http.Error(w, "", http.StatusBadRequest)
 		return
 	}
 
-	var num int
-	err := extractJSONBody(r, &num)
+	var orderNum int
+	err := extractJSONBody(r, &orderNum)
 	if err != nil {
 		http.Error(w, "", http.StatusBadRequest)
 		return
@@ -133,7 +140,7 @@ func (c *controller) createOrder(w http.ResponseWriter, r *http.Request) {
 
 	userID := r.Context().Value(UserID).(string)
 
-	err = c.gophermartService.AddOrder(r.Context(), strconv.Itoa(num), userID)
+	err = c.gophermartService.AddOrder(r.Context(), strconv.Itoa(orderNum), userID)
 	if err != nil {
 		if errors.Is(service.ErrorInvalidOrderNumberFormat, err) {
 			http.Error(w, "", http.StatusUnprocessableEntity)
@@ -190,20 +197,14 @@ func (c *controller) getBalance(w http.ResponseWriter, r *http.Request) {
 }
 
 func (c *controller) createWithdraw(w http.ResponseWriter, r *http.Request) {
-	if !isValidContentType(r, "application/json", "application/x-gzip") {
+	if !isValidContentType(r, applicationJsonContentType, applicationXGzipContentType) {
 		http.Error(w, "", http.StatusBadRequest)
 		return
 	}
-	reader, err := getBodyReader(r)
-	if err != nil {
-		http.Error(w, err.Error(), http.StatusUnprocessableEntity)
-		return
-	}
-	defer reader.Close()
 
 	var withdraw dto.Withdraw
-
-	if err := json.NewDecoder(reader).Decode(&withdraw); err != nil {
+	err := extractJSONBody(r, &withdraw)
+	if err != nil {
 		http.Error(w, "", http.StatusBadRequest)
 		return
 	}
@@ -259,17 +260,6 @@ func isValidContentType(r *http.Request, allowedTypes ...string) bool {
 		}
 	}
 	return false
-}
-
-func getBodyReader(r *http.Request) (io.ReadCloser, error) {
-	if r.Header.Get(`Content-Encoding`) == `gzip` {
-		gz, err := gzip.NewReader(r.Body)
-		if err != nil {
-			return nil, err
-		}
-		return gz, nil
-	}
-	return r.Body, nil
 }
 
 func extractJSONBody(r *http.Request, v interface{}) error {

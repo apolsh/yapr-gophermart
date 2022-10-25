@@ -8,10 +8,6 @@ import (
 	"github.com/rs/zerolog/log"
 )
 
-const (
-	authCookieName = "Authorization"
-)
-
 type ContextKey string
 
 var UserID ContextKey = "UserID"
@@ -19,7 +15,7 @@ var UserID ContextKey = "UserID"
 func AuthMiddleware(parseCallback func(string) (string, error)) func(handler http.Handler) http.Handler {
 	return func(next http.Handler) http.Handler {
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-			cookie, err := r.Cookie(authCookieName)
+			cookie, err := r.Cookie(authorizationHeaderKey)
 			if err != nil {
 				http.Error(w, err.Error(), http.StatusUnauthorized)
 				return
