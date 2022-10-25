@@ -4,7 +4,7 @@ import (
 	"context"
 	"errors"
 
-	"github.com/apolsh/yapr-gophermart/cmd/internal/gophermart/entity"
+	"github.com/apolsh/yapr-gophermart/cmd/internal/gophermart/dto"
 	"github.com/apolsh/yapr-gophermart/cmd/internal/gophermart/storage"
 	"github.com/jackc/pgconn"
 	"github.com/jackc/pgx/v4"
@@ -40,15 +40,15 @@ func (s UserStoragePG) NewUser(ctx context.Context, login, hashedPassword string
 	return id, nil
 }
 
-func (s UserStoragePG) Get(ctx context.Context, login string) (entity.User, error) {
+func (s UserStoragePG) Get(ctx context.Context, login string) (dto.User, error) {
 	q := "SELECT id, login, password from \"user\" WHERE login = $1"
-	var user entity.User
+	var user dto.User
 	err := s.pool.QueryRow(ctx, q, login).Scan(&user.ID, &user.Login, &user.HashedPassword)
 	if err != nil {
 		if errors.Is(pgx.ErrNoRows, err) {
-			return entity.User{}, storage.ErrItemNotFound
+			return dto.User{}, storage.ErrItemNotFound
 		}
-		//TODO: throw err add logging
+		return dto.User{}, storage.HandleUnknownDatabaseError(err)
 	}
 	return user, nil
 }

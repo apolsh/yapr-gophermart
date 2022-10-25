@@ -5,8 +5,7 @@ import (
 	"errors"
 	"time"
 
-	"github.com/apolsh/yapr-gophermart/cmd/internal/gophermart/entity"
-	"github.com/apolsh/yapr-gophermart/cmd/internal/gophermart/entity/dto"
+	"github.com/apolsh/yapr-gophermart/cmd/internal/gophermart/dto"
 	"github.com/apolsh/yapr-gophermart/cmd/internal/gophermart/storage"
 	"github.com/jackc/pgconn"
 	"github.com/jackc/pgx/v4/pgxpool"
@@ -28,7 +27,7 @@ func NewOrderStoragePG(pool *pgxpool.Pool) storage.OrderStorage {
 }
 
 func (o OrderStoragePG) SaveNewOrder(ctx context.Context, orderNum string, userID string) error {
-	order := entity.NewOrder(orderNum, userID)
+	order := dto.NewOrder(orderNum, userID)
 	//language=postgresql
 	s := "INSERT INTO \"order\" (number, status, accrual, uploaded_at, user_id) VALUES ($1, $2, $3, $4, $5)"
 	_, err := o.pool.Exec(ctx, s, orderNum, order.Status, order.Accrual, order.UploadedAt, order.UserID)
@@ -65,7 +64,7 @@ func (o OrderStoragePG) UpdateOrder(ctx context.Context, orderNum string, status
 	return nil
 }
 
-func (o OrderStoragePG) GetOrdersByID(ctx context.Context, id string) ([]entity.Order, error) {
+func (o OrderStoragePG) GetOrdersByID(ctx context.Context, id string) ([]dto.Order, error) {
 	//language=postgresql
 	q := "SELECT number, status, accrual, uploaded_at, user_id FROM \"order\" WHERE user_id = $1"
 
@@ -74,8 +73,8 @@ func (o OrderStoragePG) GetOrdersByID(ctx context.Context, id string) ([]entity.
 		return nil, err
 	}
 
-	orders := make([]entity.Order, 0)
-	var order entity.Order
+	orders := make([]dto.Order, 0)
+	var order dto.Order
 	for rows.Next() {
 		err := rows.Scan(&order.Number, &order.Status, &order.Accrual, &order.UploadedAt, &order.UserID)
 		if err != nil {

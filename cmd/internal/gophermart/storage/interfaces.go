@@ -4,8 +4,7 @@ import (
 	"context"
 	"errors"
 
-	"github.com/apolsh/yapr-gophermart/cmd/internal/gophermart/entity"
-	"github.com/apolsh/yapr-gophermart/cmd/internal/gophermart/entity/dto"
+	"github.com/apolsh/yapr-gophermart/cmd/internal/gophermart/dto"
 	"github.com/rs/zerolog/log"
 	"github.com/shopspring/decimal"
 )
@@ -13,13 +12,13 @@ import (
 type (
 	UserStorage interface {
 		NewUser(ctx context.Context, login, hashedPassword string) (string, error)
-		Get(ctx context.Context, login string) (entity.User, error)
+		Get(ctx context.Context, login string) (dto.User, error)
 	}
 
 	OrderStorage interface {
 		SaveNewOrder(ctx context.Context, orderNum string, userID string) error
 		UpdateOrder(ctx context.Context, orderNum string, status string, accrual decimal.Decimal) error
-		GetOrdersByID(ctx context.Context, id string) ([]entity.Order, error)
+		GetOrdersByID(ctx context.Context, id string) ([]dto.Order, error)
 		GetBalanceByUserID(ctx context.Context, id string) (dto.Balance, error)
 		CreateWithdraw(ctx context.Context, id string, withdraw dto.Withdraw) error
 		GetWithdrawalsByUserID(ctx context.Context, id string) ([]dto.Withdraw, error)

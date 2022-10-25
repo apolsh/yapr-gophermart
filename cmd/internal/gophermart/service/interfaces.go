@@ -4,8 +4,7 @@ import (
 	"context"
 	"errors"
 
-	"github.com/apolsh/yapr-gophermart/cmd/internal/gophermart/entity"
-	"github.com/apolsh/yapr-gophermart/cmd/internal/gophermart/entity/dto"
+	"github.com/apolsh/yapr-gophermart/cmd/internal/gophermart/dto"
 )
 
 type GophermartService interface {
@@ -13,7 +12,7 @@ type GophermartService interface {
 	LoginUser(ctx context.Context, login, password string) (string, error)
 	ParseJWTToken(token string) (string, error)
 	AddOrder(ctx context.Context, orderNum string, userID string) error
-	GetOrdersByUser(ctx context.Context, id string) ([]entity.Order, error)
+	GetOrdersByUser(ctx context.Context, id string) ([]dto.Order, error)
 	GetBalanceByUserID(ctx context.Context, id string) (dto.Balance, error)
 	CreateWithdraw(ctx context.Context, id string, withdraw dto.Withdraw) error
 	GetWithdrawalsByUserID(ctx context.Context, id string) ([]dto.Withdraw, error)

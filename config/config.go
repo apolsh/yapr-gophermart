@@ -8,9 +8,8 @@ import (
 )
 
 type Config struct {
-	RunAddress           string `env:"RUN_ADDRESS" envDefault:"localhost:8080"`
-	AccrualSystemAddress string `env:"ACCRUAL_SYSTEM_ADDRESS" envDefault:"http://localhost:8282"`
-	//AuthSecretKey        string `env:"AUTH_SECRET_KEY" envDefault:"very_secret_key"`
+	RunAddress              string `env:"RUN_ADDRESS" envDefault:"localhost:8080"`
+	AccrualSystemAddress    string `env:"ACCRUAL_SYSTEM_ADDRESS" envDefault:"http://localhost:8282"`
 	DatabaseType            string `env:"DATABASE_TYPE"  envDefault:"postgresql"`
 	DatabaseURI             string `env:"DATABASE_URI"  envDefault:"postgresql://gophermartuser:gophermartpass@localhost/gophermart?sslmode=disable"`
 	TokenSecretKey          string `env:"TOKEN_SECRET_KEY"  envDefault:"very_secret_token_key"`

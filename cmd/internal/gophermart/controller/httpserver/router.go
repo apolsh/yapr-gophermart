@@ -11,7 +11,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/apolsh/yapr-gophermart/cmd/internal/gophermart/entity/dto"
+	"github.com/apolsh/yapr-gophermart/cmd/internal/gophermart/dto"
 	"github.com/apolsh/yapr-gophermart/cmd/internal/gophermart/service"
 	"github.com/apolsh/yapr-gophermart/cmd/internal/gophermart/storage"
 	"github.com/go-chi/chi/v5"
@@ -29,7 +29,7 @@ type controller struct {
 }
 
 const (
-	applicationJsonContentType  = "application/json"
+	applicationJSONContentType  = "application/json"
 	textPlainContentType        = "text/plain"
 	applicationXGzipContentType = "application/x-gzip"
 )
@@ -65,7 +65,7 @@ func RegisterRoutes(r *chi.Mux, s service.GophermartService) {
 }
 
 func (c *controller) userRegisterHandler(w http.ResponseWriter, r *http.Request) {
-	if !isValidContentType(r, applicationJsonContentType, applicationXGzipContentType) {
+	if !isValidContentType(r, applicationJSONContentType, applicationXGzipContentType) {
 		http.Error(w, "", http.StatusBadRequest)
 		return
 	}
@@ -98,7 +98,7 @@ func (c *controller) userRegisterHandler(w http.ResponseWriter, r *http.Request)
 
 func (c *controller) userLoginHandler(w http.ResponseWriter, r *http.Request) {
 
-	if !isValidContentType(r, applicationJsonContentType, applicationXGzipContentType) {
+	if !isValidContentType(r, applicationJSONContentType, applicationXGzipContentType) {
 		http.Error(w, "", http.StatusBadRequest)
 		return
 	}
@@ -198,7 +198,7 @@ func (c *controller) getBalance(w http.ResponseWriter, r *http.Request) {
 }
 
 func (c *controller) createWithdraw(w http.ResponseWriter, r *http.Request) {
-	if !isValidContentType(r, applicationJsonContentType, applicationXGzipContentType) {
+	if !isValidContentType(r, applicationJSONContentType, applicationXGzipContentType) {
 		http.Error(w, "", http.StatusBadRequest)
 		return
 	}

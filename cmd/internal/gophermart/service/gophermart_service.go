@@ -7,8 +7,7 @@ import (
 	"time"
 
 	"github.com/apolsh/yapr-gophermart/cmd/internal/gophermart/client"
-	"github.com/apolsh/yapr-gophermart/cmd/internal/gophermart/entity"
-	"github.com/apolsh/yapr-gophermart/cmd/internal/gophermart/entity/dto"
+	"github.com/apolsh/yapr-gophermart/cmd/internal/gophermart/dto"
 	"github.com/apolsh/yapr-gophermart/cmd/internal/gophermart/storage"
 	"github.com/apolsh/yapr-gophermart/config"
 	"github.com/golang-jwt/jwt/v4"
@@ -139,46 +138,7 @@ func (g GophermartServiceImpl) GetWithdrawalsByUserID(ctx context.Context, id st
 	return g.orderStorage.GetWithdrawalsByUserID(ctx, id)
 }
 
-func (g GophermartServiceImpl) getAccrualAsync(numOfTry int, orderNum string) {
-	if numOfTry > 10 {
-		return
-	}
-	numOfTry++
-	loyaltyInfo, err := g.loyaltyService.GetLoyaltyPoints(context.Background(), orderNum)
-	if errors.Is(client.ErrTooManyRequests, err) {
-		time.AfterFunc(1*time.Minute, func() {
-			g.asyncWorker.ExecuteTask(func() {
-				g.getAccrualAsync(numOfTry, orderNum)
-			})
-		})
-	}
-	if errors.Is(client.ErrOrderIsNotRegisteredYet, err) {
-		time.AfterFunc(15*time.Second, func() {
-			g.asyncWorker.ExecuteTask(func() {
-				g.getAccrualAsync(numOfTry, orderNum)
-			})
-		})
-	}
-
-	if err != nil {
-		log.Error().Err(err).Msg(err.Error())
-		return
-	}
-	if loyaltyInfo.Status == "PROCESSING" || loyaltyInfo.Status == "REGISTERED" {
-		time.AfterFunc(15*time.Second, func() {
-			g.asyncWorker.ExecuteTask(func() {
-				g.getAccrualAsync(numOfTry, orderNum)
-			})
-		})
-	}
-	err = g.orderStorage.UpdateOrder(context.Background(), orderNum, loyaltyInfo.Status, loyaltyInfo.Accrual)
-	if err != nil {
-		log.Error().Err(err).Msg(err.Error())
-		return
-	}
-}
-
-func (g GophermartServiceImpl) GetOrdersByUser(ctx context.Context, id string) ([]entity.Order, error) {
+func (g GophermartServiceImpl) GetOrdersByUser(ctx context.Context, id string) ([]dto.Order, error) {
 	return g.orderStorage.GetOrdersByID(ctx, id)
 }
 
@@ -219,4 +179,43 @@ func (g GophermartServiceImpl) generateToken(id string) (string, error) {
 	})
 
 	return token.SignedString([]byte(g.jwtSecretKey))
+}
+
+func (g GophermartServiceImpl) getAccrualAsync(numOfTry int, orderNum string) {
+	if numOfTry > 10 {
+		return
+	}
+	numOfTry++
+	loyaltyInfo, err := g.loyaltyService.GetLoyaltyPoints(context.Background(), orderNum)
+	if errors.Is(client.ErrTooManyRequests, err) {
+		time.AfterFunc(1*time.Minute, func() {
+			g.asyncWorker.ExecuteTask(func() {
+				g.getAccrualAsync(numOfTry, orderNum)
+			})
+		})
+	}
+	if errors.Is(client.ErrOrderIsNotRegisteredYet, err) {
+		time.AfterFunc(15*time.Second, func() {
+			g.asyncWorker.ExecuteTask(func() {
+				g.getAccrualAsync(numOfTry, orderNum)
+			})
+		})
+	}
+
+	if err != nil {
+		log.Error().Err(err).Msg(err.Error())
+		return
+	}
+	if loyaltyInfo.Status == "PROCESSING" || loyaltyInfo.Status == "REGISTERED" {
+		time.AfterFunc(15*time.Second, func() {
+			g.asyncWorker.ExecuteTask(func() {
+				g.getAccrualAsync(numOfTry, orderNum)
+			})
+		})
+	}
+	err = g.orderStorage.UpdateOrder(context.Background(), orderNum, loyaltyInfo.Status, loyaltyInfo.Accrual)
+	if err != nil {
+		log.Error().Err(err).Msg(err.Error())
+		return
+	}
 }

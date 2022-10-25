@@ -17,7 +17,6 @@ docker_build_test:
 docker_run:
 	docker run --publish 8080:8080 service
 
-
 test-db-up:
 	docker compose -f docker-compose.yml up --build db
 
