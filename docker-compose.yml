@@ -1,0 +1,44 @@
+version: '3'
+
+networks:
+  integration:
+    driver: bridge
+
+services:
+  gophermart:
+    image: service_test
+    environment:
+      RUN_ADDRESS: "localhost:8080"
+      DATABASE_URI: "postgresql://gophermartuser:gophermartpass@db:5432/gophermart"
+      ACCRUAL_SYSTEM_ADDRESS: "accrual:8282"
+    ports:
+      - "8080:8080"
+    depends_on:
+      - db
+      - accrual
+    entrypoint: "/http-service"
+    networks:
+      - integration
+
+  accrual:
+    build:
+      context: .
+      dockerfile: accrual.Dockerfile
+    ports:
+      - "8282:8282"
+    depends_on:
+      - db
+    networks:
+      - integration
+
+  db:
+    image: postgres:13.3
+    ports:
+      - "5432:5432"
+    environment:
+      POSTGRES_USER: gophermartuser
+      POSTGRES_PASSWORD: gophermartpass
+      POSTGRES_DB: gophermart
+    restart: on-failure
+    networks:
+      - integration
