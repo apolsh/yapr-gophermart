@@ -18,11 +18,11 @@ create table if not exists "order"
     status      varchar(255)             not null,
     accrual     numeric(12, 2)           not null,
     uploaded_at timestamp with time zone not null,
-                              user_id     uuid
-                              constraint order_user_id_fk
-                              references "user"
-                              on delete cascade
-                              );
+    user_id     uuid
+    constraint order_user_id_fk
+    references "user"
+    on delete cascade
+    );
 
 create table if not exists withdrawal
 (

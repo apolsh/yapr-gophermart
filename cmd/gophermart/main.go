@@ -3,8 +3,8 @@ package main
 import (
 	"log"
 
-	"github.com/apolsh/yapr-gophermart/cmd/internal/gophermart/app"
 	"github.com/apolsh/yapr-gophermart/config"
+	"github.com/apolsh/yapr-gophermart/internal/gophermart/app"
 )
 
 func main() {

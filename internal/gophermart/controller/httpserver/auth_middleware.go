@@ -2,15 +2,18 @@ package httpserver
 
 import (
 	"context"
+	"fmt"
 	"net/http"
 	"strings"
 
-	"github.com/rs/zerolog/log"
+	"github.com/apolsh/yapr-gophermart/internal/logger"
 )
 
 type ContextKey string
 
 var UserID ContextKey = "UserID"
+
+var authMiddlewareLogger = logger.LoggerOfComponent("authMiddleware")
 
 func AuthMiddleware(parseCallback func(string) (string, error)) func(handler http.Handler) http.Handler {
 	return func(next http.Handler) http.Handler {
@@ -28,8 +31,8 @@ func AuthMiddleware(parseCallback func(string) (string, error)) func(handler htt
 
 			id, err := parseCallback(cookieParts[1])
 			if err != nil {
-				log.Error().Err(err).Msg(err.Error())
-				http.Error(w, err.Error(), http.StatusUnauthorized)
+				authMiddlewareLogger.Error(fmt.Errorf("authorization error: %w", err))
+				http.Error(w, "", http.StatusUnauthorized)
 				return
 			}
 

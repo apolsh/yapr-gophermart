@@ -13,6 +13,13 @@ type LoyaltyServiceImpl struct {
 	baseURL string
 }
 
+const (
+	StatusRegistered = "REGISTERED"
+	StatusInvalid    = "INVALID"
+	StatusProcessing = "PROCESSING"
+	StatusProcessed  = "PROCESSED"
+)
+
 func NewLoyaltyServiceImpl(baseURL string) (LoyaltyService, error) {
 	client := resty.New()
 	return &LoyaltyServiceImpl{client: client, baseURL: baseURL}, nil

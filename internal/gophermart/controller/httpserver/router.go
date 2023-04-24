@@ -1,7 +1,9 @@
+//go:generate mockgen -destination=../../mocks/router.go -package=mocks github.com/apolsh/yapr-gophermart/internal/gophermart/controller/httpserver GophermartService
 package httpserver
 
 import (
 	"compress/gzip"
+	"context"
 	"encoding/json"
 	"errors"
 	"fmt"
@@ -11,12 +13,12 @@ import (
 	"strings"
 	"time"
 
-	"github.com/apolsh/yapr-gophermart/cmd/internal/gophermart/dto"
-	"github.com/apolsh/yapr-gophermart/cmd/internal/gophermart/service"
-	"github.com/apolsh/yapr-gophermart/cmd/internal/gophermart/storage"
+	"github.com/apolsh/yapr-gophermart/internal/gophermart/dto"
+	"github.com/apolsh/yapr-gophermart/internal/gophermart/service"
+	"github.com/apolsh/yapr-gophermart/internal/gophermart/storage"
+	"github.com/apolsh/yapr-gophermart/internal/logger"
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"
-	"github.com/rs/zerolog/log"
 )
 
 type AuthRequest struct {
@@ -24,8 +26,21 @@ type AuthRequest struct {
 	Password string `json:"password"`
 }
 
+type GophermartService interface {
+	AddUser(ctx context.Context, login, password string) (string, error)
+	LoginUser(ctx context.Context, login, password string) (string, error)
+	ParseJWTToken(token string) (string, error)
+	AddOrder(ctx context.Context, orderNum string, userID string) error
+	GetOrdersByUser(ctx context.Context, id string) ([]dto.Order, error)
+	GetBalanceByUserID(ctx context.Context, id string) (dto.Balance, error)
+	CreateWithdraw(ctx context.Context, id string, withdraw dto.Withdraw) error
+	GetWithdrawalsByUserID(ctx context.Context, id string) ([]dto.Withdraw, error)
+	StartAccrualInfoSynchronizer(ctx context.Context, loyaltyServiceRateLimit int) error
+	Close()
+}
+
 type controller struct {
-	gophermartService service.GophermartService
+	gophermartService GophermartService
 }
 
 const (
@@ -34,7 +49,9 @@ const (
 	applicationXGzipContentType = "application/x-gzip"
 )
 
-func RegisterRoutes(r *chi.Mux, s service.GophermartService) {
+var log = logger.LoggerOfComponent("router")
+
+func RegisterRoutes(r *chi.Mux, s GophermartService) {
 	c := &controller{gophermartService: s}
 
 	r.Use(middleware.RequestID)
@@ -87,6 +104,7 @@ func (c *controller) userRegisterHandler(w http.ResponseWriter, r *http.Request)
 			http.Error(w, "", http.StatusConflict)
 			return
 		}
+		log.Error(fmt.Errorf("error during user registration: %w", err))
 		http.Error(w, "", http.StatusInternalServerError)
 		return
 	}
@@ -117,6 +135,7 @@ func (c *controller) userLoginHandler(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 
+		log.Error(fmt.Errorf("error during user login: %w", err))
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
@@ -155,10 +174,8 @@ func (c *controller) createOrder(w http.ResponseWriter, r *http.Request) {
 			http.Error(w, "", http.StatusConflict)
 			return
 		}
-		if errors.Is(storage.ErrUnknownDatabase, err) {
-			http.Error(w, "", http.StatusHTTPVersionNotSupported)
-		}
-		http.Error(w, err.Error(), http.StatusGone)
+		log.Error(fmt.Errorf("error during creating order: %w", err))
+		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
 	w.WriteHeader(http.StatusAccepted)
@@ -168,6 +185,7 @@ func (c *controller) getOrders(w http.ResponseWriter, r *http.Request) {
 	userID := r.Context().Value(UserID).(string)
 	orders, err := c.gophermartService.GetOrdersByUser(r.Context(), userID)
 	if err != nil {
+		log.Error(fmt.Errorf("error during receiving orders: %w", err))
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
@@ -179,6 +197,7 @@ func (c *controller) getOrders(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusOK)
 	}
 	if err := json.NewEncoder(w).Encode(orders); err != nil {
+		log.Error(fmt.Errorf("error during encoding response: %w", err))
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 	}
 }
@@ -187,12 +206,14 @@ func (c *controller) getBalance(w http.ResponseWriter, r *http.Request) {
 	userID := r.Context().Value(UserID).(string)
 	balance, err := c.gophermartService.GetBalanceByUserID(r.Context(), userID)
 	if err != nil {
+		log.Error(fmt.Errorf("error during receiving balance: %w", err))
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
 	w.Header().Set("Content-Type", "application/json; charset=utf-8")
 	w.WriteHeader(http.StatusOK)
 	if err := json.NewEncoder(w).Encode(balance); err != nil {
+		log.Error(fmt.Errorf("error during encoding response: %w", err))
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 	}
 }
@@ -224,6 +245,7 @@ func (c *controller) createWithdraw(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 
+		log.Error(fmt.Errorf("error during creating withdraw: %w", err))
 		http.Error(w, "", http.StatusInternalServerError)
 		return
 	}
@@ -235,6 +257,7 @@ func (c *controller) getWithdrawals(w http.ResponseWriter, r *http.Request) {
 
 	withdrawals, err := c.gophermartService.GetWithdrawalsByUserID(r.Context(), userID)
 	if err != nil {
+		log.Error(fmt.Errorf("error during recieving withdrawals: %w", err))
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
@@ -248,6 +271,7 @@ func (c *controller) getWithdrawals(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if err := json.NewEncoder(w).Encode(withdrawals); err != nil {
+		log.Error(fmt.Errorf("error during encoding response: %w", err))
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 	}
 }
@@ -276,7 +300,7 @@ func extractJSONBody(r *http.Request, v interface{}) error {
 	defer func(reader io.ReadCloser) {
 		err := reader.Close()
 		if err != nil {
-			log.Err(err).Msg(err.Error())
+			log.Error(fmt.Errorf("error during extraction request body: %w", err))
 		}
 	}(reader)
 	if err := json.NewDecoder(reader).Decode(v); err != nil {
